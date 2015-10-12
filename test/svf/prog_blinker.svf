@@ -1,0 +1,55 @@
+
+// file header start
+
+TRST OFF;
+ENDIR IDLE;
+ENDDR IDLE;
+STATE RESET;
+STATE IDLE;
+FREQUENCY 1E6 HZ;
+
+//Boundary Scan Chain Contents
+//Position 1: xcf32p
+//Position 2: xcf32p
+//Position 3: xc95144xl
+//Position 4: xccace
+//Position 5: xc5vlx110t
+TIR 48 TDI (ffffffffffff) SMASK (ffffffffffff) ;
+TDR 4 TDI (00) SMASK (1f) ;	
+
+// file header end
+		
+// set control register to 1
+SIR 10 TDI (3e2) SMASK (03ff) ;
+SDR 1 TDI (1) SMASK (1) ;
+RUNTEST 10 TCK ;
+// select instruction memory
+SIR 10 TDI (3c3) SMASK (03ff) ;
+// Inserting mem file '../test/testcode/blinker_code.mem'
+SDR 42 TDI (00000000000) SMASK (3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (001000000ad) SMASK (3ffffffffff) TDO (00000000000) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (002000000ad) SMASK (3ffffffffff) TDO (001000000ad) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (003000000da) SMASK (3ffffffffff) TDO (002000000ad) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (004000000ad) SMASK (3ffffffffff) TDO (003000000da) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0057c000278) SMASK (3ffffffffff) TDO (004000000ad) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0067c210a78) SMASK (3ffffffffff) TDO (0057c000278) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0075420463e) SMASK (3ffffffffff) TDO (0067c210a78) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0087c0213a6) SMASK (3ffffffffff) TDO (0075420463e) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00938210001) SMASK (3ffffffffff) TDO (0087c0213a6) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00a4bfffff4) SMASK (3ffffffffff) TDO (00938210001) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+// Mem file '../test/testcode/blinker_code.mem' finished
+// set control register to 0
+SIR 10 TDI (3e2) SMASK (03ff) ;
+SDR 1 TDI (0) SMASK (1) ;
+RUNTEST 10 TCK ;

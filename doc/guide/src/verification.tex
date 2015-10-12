@@ -1,0 +1,118 @@
+\chapter{Running simulations}
+
+Available tests are described in detail in Chapter~4 of \cite{friedmann13phd}.
+Here, we will focus on how to use theses tests.
+In order to do that, we will also discuss the Makefile-based build flow.
+
+
+\section{Build flow}
+The build flow uses \code{make} and was inspired by the Linux build system kbuild \citep{kbuild}.
+There is a central configuration file \file{.config} in the top-level directory that defines configuration options.
+Source files are collected by using \file{Makefile.srclist} files throughout the directory hierarchy using the configured options.
+Separate files \code{Makefile.build} hold the build rules for \code{make} for each supported simulator.
+These Makefiles reside in run directories under \file{verification/sim_*}.
+Currently only ModelSim is supported in \file{verification/sim_model/}.
+Run directories for synthesis are located in \file{target/}.
+
+
+\subsection{Configuration options}
+
+These configuration options can be given in the global configuration file \file{.config}.
+
+\begin{description}
+    \item[\code{CONFIG_PLATFORM}] \textit{= [~virtex5 | tsmc65 | umc180 | designware | achronix\_speedster22ihd~]}
+
+        Select the target technology.
+        Some components for clock generation, memories, multipliers, etc.\ only work in particular technologies, for example when using specialized \gls{fpga} resources.
+        Note, that support for the achronix \gls{fpga} is merely a placeholder.
+
+    \item[\code{CONFIG_BOARD}] \textit{= [~ml505 | flyspi-board~]}
+
+        Select which \gls{fpga} board is used.
+        The Xilinx evaluation board ml505 \citep{ml505_ug_2008} or the ``flyspi'' board of the electronic vision(s) group.
+        Support for the latter is preliminary.
+        This option is only relevant for the \file{target/emsys} implementation run directory.
+
+    \item[\code{CONFIG_USE_XILINX_MULTIPLIER}] \textit{= [~y | n~]}
+
+        Select whether to use integrated DSP slices, when building for \code{CONFIG_PLATFORM} = virtex5.
+
+    \item[\code{CONFIG_WITH_BUS}] \textit{= [~y | n~]}
+
+        Build the \gls{omnibus} implementation provided as part of the repository or not.
+
+
+    \item[\code{CONFIG_WITH_VECTOR}] \textit{= [~y | n~]}
+
+        Build modules for the \gls{fxv} unit or not.
+\end{description}
+
+
+\subsection{Running simulations}
+
+To compile sources for simulation with ModelSim according to the selected configuration do:
+\begin{lstlisting}[language=bash]
+   $ cd verification/sim_model
+   $ make
+   $ vsim -do <simulation script>
+\end{lstlisting}
+Several simulation scripts are provided for the different test scenarios.
+
+\section{Tests}
+
+\subsection{Program test}
+
+\begin{tabular}{ll}
+    \textit{Simulation script:}     & \file{verification/sim_model/sim_plt.do} \\
+    \textit{Top-level source:}      & \file{testbenches/program_test.sv} \\
+\end{tabular} \\
+This test executes a number of programs from \file{test/testcode}.
+The processor is simulated in a two memory environment.
+Therefore, each program provides code and memory images, plus an additional expected data image.
+The test compares the memory contents after simulation to the expected image.
+Memory images can be provided as ASCII files with hexadecimal values or in raw binary form.
+For new programs the latter format should be preferred, since it can be generated using the flow described in Chapter~\ref{ch:usesw}.
+
+
+\subsection{Sequence test}
+
+\begin{tabular}{ll}
+    \textit{Simulation script:}     & \file{verification/sim_model/sim_seq.do} \\
+    \textit{Top-level source:}      & \file{testbenches/sequence_test.sv} \\
+\end{tabular} \\
+This test generates random program sequences and compares the final state of internal registers to the expected state.
+\Gls{fxv} instructions are excluded from random generation.
+Also the \code{tw} and \code{twi} instructions are not allowed to avoid exceptions.
+The test can be configured with four preprocessor options:
+\begin{description}
+    \item[\code{PROGRAM_LENGTH}]
+        Number of instructions of which the last one is always \code{wait}.
+
+    \item[\code{OPT_BCACHE}]
+        Passed to the top-level processor option of the same name (see Section~\ref{sec:topopt}).
+
+    \item[\code{USE_CACHE}]
+        Perform the test using an instruction cache.
+
+    \item[\code{OPT_DMEM_BUS}]
+        If set, use $\code{OPT_DMEM} = \code{Pu_types::DMEM_BUS}$ (see Section~\ref{sec:topopt}).
+\end{description}
+The simulation itself runs indefinitely.
+Specify a time when starting the simulation.
+For good coverage a simulated time of \unit[100]{ms} should be aimed for.
+
+
+\subsection{Vector unit test}
+\begin{tabular}{ll}
+    \textit{Simulation script:}     & \file{verification/sim_model/sim_fub_vector.do} \\
+    \textit{Top-level source:}      & \file{testbenches/fub_vector_test.sv} \\
+\end{tabular} \\
+This is a unit test for the vector unit.
+It tests the design in three phases:
+\begin{enumerate}
+    \item Explicitly specified programs.
+    \item Randomly generated single instructions.
+    \item Randomly generated sequences of instructions.
+\end{enumerate}
+A larger test set is defined by \file{testbenches/signoff_vector_test.sv} that includes the top-level of this test.
+The simulation script \file{verification/sim_model/sim_signoff_vector_test.do} uses this as top-level.

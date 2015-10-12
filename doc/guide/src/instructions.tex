@@ -1,0 +1,25 @@
+\chapter{Instruction set}
+
+\minitoc
+
+\section{Implemented subset of Power ISA 2.06}
+
+\cite{powerisa_206} defines an embedded and a server environment, several mandatory and optional categories for these environments, and allows \unit[32 and 64]{bit} implementations.
+The presented processor realizes an embedded environment supporting categories Base, Embedded, External Control, and Wait using \unit[32]{bit}.
+In addition it supports the custom \gls{fxv} instruction set and two now deprecated instruction sets \gls{never} and \gls{synapse}.
+The full list of implemented instructions is given in \cite{friedmann13phd}.
+
+Opcodes and instruction formats are defined in source file \file{rtl/packages/pu_inst_pkg.sv}.
+The high-level behavior, e.g.\ what registers are read and written or which functional unit is used, is given by the predecode module in \file{rtl/processor/predecode.sv}.
+
+
+\input{src/fxv.tex}
+
+
+\section{Deprecated NEVER and SYNAPSE instruction sets}
+
+The \gls{synapse} instruction set is defined in \cite{friedmann13phd}.
+For \gls{never} there is no documentation.
+All extensions \gls{fxv}, \gls{synapse}, and \gls{never} use overlapping opcode spaces.
+Therefore, they can not be used together.
+Currently only the \gls{fxv} instruction set is of relevance, because it is used in actual hardware \citep{dlspaper15} and it is generic as opposed to the other two.

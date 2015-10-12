@@ -1,0 +1,69 @@
+BUILD_DIR=build_host
+
+CC=gcc
+CFLAGS=-O0 -ggdb -Wall -I./syslib -pthread `apr-1-config --cflags --includes`
+CFLAGS+=-DPLATFORM_LINUX 
+LD=gcc
+LDFLAGS=-pthread `apr-1-config --ldflags --libs --link-ld` -laprutil-1
+AR=ar
+ARFLAGS=rc
+
+
+SYSLIB=libsys.a
+
+ifndef SYSDEF
+	D_SYSDEF="\"app_wta/sysdef.h\""
+else
+	D_SYSDEF="\"$(SYSDEF)\""
+endif
+
+CFLAGS+=-DSYSDEF=$(D_SYSDEF)
+
+
+all: neuroproc
+test: test_messaging test_exponential
+
+.PHONY: neuroproc
+neuroproc: $(BUILD_DIR) $(SYSLIB)
+	$(CC) $(CFLAGS) -DENTRYPOINT="void neuron_start()" -c neuron.c -o $(BUILD_DIR)/neuron.o
+	$(CC) $(CFLAGS) -DENTRYPOINT="void synarray_start()" -c synarray.c -o $(BUILD_DIR)/synarray.o
+	$(CC) $(CFLAGS) -DENTRYPOINT="void synplast_start()" -c synplast.c -o $(BUILD_DIR)/synplast.o
+	$(CC) $(CFLAGS) -c exp.c -o $(BUILD_DIR)/exp.o
+	$(CC) $(CFLAGS) -c host/host_shell.c -o $(BUILD_DIR)/host_shell.o
+	$(LD) $(LDFLAGS) -o $(BUILD_DIR)/neuroproc \
+		$(BUILD_DIR)/neuron.o \
+		$(BUILD_DIR)/synarray.o \
+		$(BUILD_DIR)/synplast.o \
+		$(BUILD_DIR)/host_shell.o \
+		$(BUILD_DIR)/exp.o \
+		$(BUILD_DIR)/$(SYSLIB)
+
+.PHONY: test_messaging
+test_messaging: $(BUILD_DIR) $(SYSLIB)
+	$(CC) $(CFLAGS) -c test/messaging.c -o $(BUILD_DIR)/messaging.o
+	$(LD) $(LDFLAGS) -o $(BUILD_DIR)/test_messaging \
+		$(BUILD_DIR)/messaging.o \
+		$(BUILD_DIR)/$(SYSLIB)
+
+.PHONY: test_exponential
+test_exponential: $(BUILD_DIR) $(SYSLIB)
+	$(CC) $(CFLAGS) -c test/exponential.c -o $(BUILD_DIR)/exponential.o
+	$(CC) $(CFLAGS) -c exp.c -o $(BUILD_DIR)/exp.o
+	$(LD) $(LDFLAGS) -o $(BUILD_DIR)/test_exponential \
+		$(BUILD_DIR)/exponential.o \
+		$(BUILD_DIR)/exp.o \
+		$(BUILD_DIR)/$(SYSLIB) \
+		-lm
+
+
+.PHONY: $(SYSLIB)
+$(SYSLIB): 
+	$(CC) $(CFLAGS) -c syslib/linux/msg.c -o $(BUILD_DIR)/msg.o
+	$(AR) $(ARFLAGS) $(BUILD_DIR)/$(SYSLIB) $(BUILD_DIR)/msg.o
+
+$(BUILD_DIR):
+	mkdir $(BUILD_DIR)
+
+.PHONY: clean
+clean:
+	rm -rf $(BUILD_DIR)

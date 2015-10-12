@@ -1,0 +1,1051 @@
+\section{FXV vector instruction set}
+
+This section lists the implemented instructions of the fixed-point vector functional unit of Nux.
+The following rules are used in the notation:
+\begin{itemize}
+    \item Round brackets indicate the contents of the register selected by the index in brackets.
+        So, $(\text{VRA})$ stands for the contents of the register with index VRA.
+    \item Subscripts denote the element of the vector using the current type:
+        $(\text{VRA})_{i/8}$ is the $i-\text{th}$ halfword element, $(\text{VRA})_{i/16}$ is the $i-\text{th}$ byte element, and $(\text{VRA})_{i/32}$ is the $i-\text{th}$ half-byte element.
+    \item Lowercase letters $u, v, w, m$ indicate single-precision elements.
+        Uppercase letters $U, V, W, M$ are double-precision elements.
+    \item Underlined letters $\underline{u}, \underline{v}$ indicate full single-precision vectors.
+    \item VRA, VRB, and VRT refer to vector register indices.
+    \item ACC is the contents of the double-precision accumulation register.
+    \item VCR is contents of the \unit[32]{bit} vector condition register.
+    \item RA, RB refer to general-purpose registers.
+\end{itemize}
+
+\subsection{Registers}
+
+\subsubsection{Vector register file (VRF)}
+
+\begin{bytefield}[bitwidth=0.2em]{128}
+    \bitheader{0,31,63,95,127} \\
+    \bitbox{16}{$\text{VR0}_{0/8}$} & \bitbox{16}{$\text{VR0}_{1/8}$}  & \bitbox{16}{$\text{VR0}_{2/8}$} & \bitbox{16}{$\text{VR0}_{3/8}$} & \bitbox{16}{$\text{VR0}_{4/8}$} & \bitbox{16}{$\text{VR0}_{5/8}$} & \bitbox{16}{$\text{VR0}_{6/8}$} & \bitbox{16}{$\text{VR0}_{7/8}$}\\
+    \bitbox{128}{$\vdots$} \\
+    \bitbox{128}{VR31} \\
+\end{bytefield} \\
+The vector register file contains 32 \unit[128]{bit} vector registers, which consist of 8 halfword elements.
+Each element can also be used as two byte elements depending on the used instruction.
+
+
+\subsubsection{Vector condition register (VCR)}
+
+\begin{bytefield}[bitwidth=0.2em]{96}
+    \bitheader{0,11,23,35,47,59,71,83,95} \\
+    \bitbox{12}{$C_0$}   %
+    & \bitbox{12}{$C_1$} %
+    & \bitbox{12}{$C_2$} %
+    & \bitbox{12}{$C_3$} %
+    & \bitbox{12}{$C_4$} %
+    & \bitbox{12}{$C_5$} %
+    & \bitbox{12}{$C_6$} %
+    & \bitbox{12}{$C_7$} \\
+\end{bytefield} \\
+The vector condition register has one field for each of the 8 halfword elements:
+
+\begin{bytefield}[bitwidth=1em]{12}
+    \bitheader{0,3,4,7,8,11} \\
+    \bitbox{4}{EQ} & \bitbox{4}{GT} & \bitbox{4}{LT} \\
+    {\footnotesize %
+    \bitbox{1}{0}   %
+    & \bitbox{1}{1} %
+    & \bitbox{1}{2} %
+    & \bitbox{1}{3} %
+    & \bitbox{1}{0} %
+    & \bitbox{1}{1} %
+    & \bitbox{1}{2} %
+    & \bitbox{1}{3} %
+    & \bitbox{1}{0} %
+    & \bitbox{1}{1} %
+    & \bitbox{1}{2} %
+    & \bitbox{1}{3} } \\
+\end{bytefield} \\
+Each field consists of three condition areas for equality (EQ), greater than (GT), and less than (LT).
+For each nibble (\unit[4]{bit}) in the vector one condition bit is stored.
+Note: nibble-wise condition bits are a leftover from early days.
+Currently, there is no way to set or use them individually.
+Operations use two or four bits simultaneously for byte or halfword operations.
+
+
+\subsection{Primitive functions}
+Some instructions take only effect for individual elements if a given condition is met.
+The condition is determined by the contents of the vector condition register and the condition field in the instruction in the following way:
+{\footnotesize
+\begin{algorithmic}[1]
+    \Function {conditional}{cond, vcr\_field}
+        \If { cond = 0 }
+            \State \Return true
+        \ElsIf { cond = 1 }
+            \State \Return vcr\_field.gt
+        \ElsIf { cond = 2 }
+            \State \Return vcr\_field.lt
+        \ElsIf { cond = 3 }
+            \State \Return vcr\_field.eq
+        \EndIf
+    \EndFunction
+\end{algorithmic} }
+
+
+\paragraph{Shift and logical functions}
+The $\text{\sc{shift\_left}}(x,n)$ function gives the result of shifting $x$ left by $n$ positions while filling in zeros on the right.
+Shifted-out bits are discarded.
+
+The $\text{\sc{shift\_right}}(x,n)$ function gives the result of shifting $x$ right by $n$ positions while filling in zeros on the left.
+
+The $\text{\sc{sign\_extend}}(x)$ function gives the result of sign extending $x$ to the width of the assignee of this function.
+
+The $\text{\sc{bitwise\_and}}(a, b)$ function represents the result of performing a bitwise and between $a$ and $b$.
+
+The $\text{\sc{bitwise\_or}}(a, b)$ function represents the result of performing a bitwise or between $a$ and $b$.
+
+\paragraph{Saturating and fractional arithmetic}
+Some instructions use fractional representation usually combined with saturating arithmetics.
+The function below defines saturating multiplication of two fractional operands of \unit[$n$]{bit} size.
+The result is \unit[$2n$]{bit} wide and shifted to the left to get rid of one superfluous sign bit.
+Saturation only occurs if both operands represent $-1$ ($= 100\ldots 0$ in binary).
+{\footnotesize
+\begin{algorithmic}[1]
+    \Function {mult\_sat\_fract}{a, b, n}
+        \If { $a = -2^{n-1} \land b = -2^{n-1}$ }
+            \State \Return $2^{2*n-1} - 1$
+        \Else
+            \State $u \gets a \cdot b$
+            \State \Return \Call{shift\_left}{$u$, 1}
+        \EndIf
+    \EndFunction
+\end{algorithmic} }
+
+The following function defines saturating addition of two \unit[$n$]{bit} operands.
+In case of overflows, the result saturates to the maximum and minimum representable value.
+{\footnotesize
+\begin{algorithmic}[1]
+    \Function {add\_sat}{a, b, n}
+        \State $y \gets a + b$
+        \If { $y > 2^{n-1} - 1$ }
+            \State \Return $2^{n-1} - 1$
+        \ElsIf { $y < -2^{n-1}$ }
+            \State \Return $-2^{n-1}$
+        \Else
+            \State \Return $y$
+        \EndIf
+    \EndFunction
+\end{algorithmic} }
+
+
+\paragraph{Memories and IO}
+Function $\text{\sc{mem}}(a)$ represents the \unit[32]{bit }contents of main memory at address $a$.
+
+Function $\text{\sc{io}}(a)$ represents the contents of \gls{io} location $a$.
+The width of this result is determined by the width of vectors (\code{OPT_VECTOR_NUM_HALFWORDS}) and the number of slices (\code{OPT_VECTOR_SLICES}).
+
+
+\begin{multicols}{2}[%
+    \subsection{Modulo halfword instructions}%
+]
+
+\fxvinst{Multiply accumulate halfword modulo}{fxvmahm}{12}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+        \State $W \gets u \cdot v$
+        \State $M \gets \text{ACC}_{i/8}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets W + M_i \mod 2^{16}$
+        \EndIf
+
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[16]{bit} halfword elements and added to the contents of the \unit[32]{bit} double-precision accumulation register.
+    The result is written to vector register VRT modulo $2^{16}$ if the specified condition is met.
+}
+
+\fxvinst{Multiply accumulate to accumulator halfword modulo}{fxvmatachm}{44}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+        \State $W \gets u \cdot v$
+        \State $M \gets \text{ACC}_{i/8}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/8} \gets W + M_i \mod 2^{32}$
+        \EndIf
+
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[16]{bit} halfword elements and added to the contents of the \unit[32]{bit} double-precision accumulation register.
+    The result is written to the accumulation register modulo $2^{32}$ if the specified condition is met.
+}
+
+\fxvinst{Multiply halfword modulo}{fxvmulhm}{76}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets u \cdot v \mod 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[16]{bit} halfword elements.
+    The result is written to the vector register indicated by VRT modulo $2^{16}$ if the specified condition is met.
+}
+
+\fxvinst{Multiply to accumulator halfword modulo}{fxvmultachm}{108}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/8} \gets u \cdot v \mod 2^{32}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[16]{bit} halfword elements.
+    The result is written to the accumulator modulo $2^{32}$ if the specified condition is met.
+}
+
+\fxvinst{Subtract halfword modulo}{fxvsubhm}{332}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets u - v \mod 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of the vector register indicated by VRB is subtracted from the contents of the register indicated by VRA.
+    The result is written to VRT modulo $2^{16}$ if the specified condition is met.
+}
+
+\fxvinst{Add accumulator to accumulator halfword modulo}{fxvaddactachm}{364}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $M \gets ACC_{i/8}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/8} \gets U + M \mod 2^{32}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector register VRA is sign extended to double precision and added to the accumulation register.
+    The result is written to the accumulator modulor $2^{32}$ if the specified condition is met.
+}
+
+\fxvinst{Add and save to accumulator halfword modulo}{fxvaddtachm}{428}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $V \gets \Call{sign\_extend}{(\text{VRB})_{i/8}}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/8} \gets U + V$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are sign extended to double precision.
+    If the specified condition is met, their sum is written to the accumulator.
+}
+
+\fxvinst{Add accumulator halfword modulo}{fxvaddachm}{396}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $M \gets \text{ACC}_{i/8}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets U + M \mod 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector register VRA is sign extended to double precision and added to the accumulator.
+    The result is written to vector register VRT modulo $2^{16}$.
+}
+
+\fxvinst{Add halfword modulo}{fxvaddhm}{460}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $V \gets \Call{sign\_extend}{(\text{VRB})_{i/8}}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets U + V \mod 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers indicated by VRA and VRB are added.
+    If the specified condition is met, the result is written to the vector register indicated by VRT.
+}
+
+\fxvinst{Compare halfword modulo}{fxvcmphm}{300}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $\text{VCR}_{i/8}.eq \gets u = 0$
+        \State $\text{VCR}_{i/8}.gt \gets u > 0$
+        \State $\text{VCR}_{i/8}.lt \gets u < 0$
+    \EndFor
+}{%
+    The contents of the vector register indicated by VRA is compared to zero and the result written to the vector condition register.
+}
+
+
+\fxvinst{Move to accumulator halfword fractional}{fxvmtach}{15}{%
+    \For {$0 \le i < 8$}
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/8} \gets (\text{VRA})_{i/8}$
+        \EndIf
+    \EndFor
+}{%
+    If enabled, the contents of elements in register VRA are copied to the accumulator aligned to the right.
+}
+
+
+\fxvinstGPRa{Splat halfword}{fxvsplath}{268}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets \text{RA} \mod 2^{16}$
+        \State $\text{VRT}_{i/8} \gets u$
+    \EndFor
+}{%
+    The lower halfword of general-purpose register RA is copied to each element of VRT.
+}
+\end{multicols}
+
+\begin{multicols}{2}[%
+    \subsection{Modulo byte instructions}%
+]
+
+\fxvinst{Multiply accumulate byte modulo}{fxvmabm}{13}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        \State $W \gets u \cdot v$
+        \State $M \gets \text{ACC}_{i/16}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets W + M_i \mod 2^{8}$
+        \EndIf
+
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[8]{bit} byte elements and added to the contents of the \unit[16]{bit} double-precision accumulation register.
+    The result is written to vector register VRT modulo $2^{8}$ if the specified condition is met.
+}
+
+\fxvinst{Multiply accumulate to accumulator byte modulo}{fxvmatacbm}{45}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        \State $W \gets u \cdot v$
+        \State $M \gets \text{ACC}_{i/16}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/16} \gets W + M_i \mod 2^{16}$
+        \EndIf
+
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[8]{bit} byte elements and added to the contents of the \unit[16]{bit} double-precision accumulation register.
+    The result is written to the accumulation register modulo $2^{16}$ if the specified condition is met.
+}
+
+\fxvinst{Multiply byte modulo}{fxvmulbm}{77}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets u \cdot v \mod 2^{8}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[8]{bit} byte elements.
+    The result is written to the vector register indicated by VRT modulo $2^{8}$ if the specified condition is met.
+}
+
+\fxvinst{Multiply to accumulator byte modulo}{fxvmultacbm}{109}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/16} \gets u \cdot v \mod 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are multiplied as \unit[8]{bit} byte elements.
+    The result is written to the accumulator modulo $2^{16}$ if the specified condition is met.
+}
+
+\fxvinst{Subtract byte modulo}{fxvsubbm}{333}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets u - v \mod 2^{8}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of the vector register indicated by VRB is subtracted from the contents of the register indicated by VRA.
+    The result is written to VRT modulo $2^{8}$ if the specified condition is met.
+}
+
+\fxvinst{Add accumulator to accumulator byte}{fxvaddactacb}{365}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $M \gets ACC_{i/16}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/16} \gets U + M \mod 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector register VRA is sign extended to double precision and added to the accumulation register.
+    The result is written to the accumulator modulo $2^{16}$ if the specified condition is met.
+}
+
+\fxvinst{Add and save to accumulator byte modulo}{fxvaddtacb}{429}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $V \gets \Call{sign\_extend}{(\text{VRB})_{i/16}}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $\text{ACC}_{i/16} \gets U + V$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers VRA and VRB are sign extended to double precision.
+    If the specified condition is met, their sum is written to the accumulator.
+}
+
+\fxvinst{Add accumulator byte modulo}{fxvaddacbm}{397}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $M \gets \text{ACC}_{i/16}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets U + M \mod 2^{8}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector register VRA is sign extended to double precision and added to the accumulator.
+    The result is written to vector register VRT modulo $2^{8}$.
+}
+
+\fxvinst{Add byte modulo}{fxvaddbm}{461}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $V \gets \Call{sign\_extend}{(\text{VRB})_{i/16}}$
+
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets U + V \mod 2^{8}$
+        \EndIf
+    \EndFor
+}{%
+    The contents of vector registers indicated by VRA and VRB are added.
+    If the specified condition is met, the result is written to the vector register indicated by VRT.
+}
+
+\fxvinst{Compare byte}{fxvcmpb}{301}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $\text{VCR}_{i/16}.eq \gets u = 0$
+        \State $\text{VCR}_{i/16}.gt \gets u > 0$
+        \State $\text{VCR}_{i/16}.lt \gets u < 0$
+    \EndFor
+}{%
+    The contents of the vector register indicated by VRA is compared to zero and the result written to the vector condition register.
+}
+
+
+\fxvinst{Move to accumulator byte}{fxvmtacb}{14}{%
+    \For {$0 \le i < 16$}
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/16} \gets (\text{VRA})_{i/16}$
+        \EndIf
+    \EndFor
+}{%
+    If enabled, the contents of elements in register VRA are copied to the accumulator aligned to the right.
+}
+
+
+\fxvinstGPRa{Splat byte}{fxvsplatb}{269}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets \text{RA} \mod 2^{8}$
+        \State $\text{VRT}_{i/16} \gets u$
+    \EndFor
+}{%
+    The lower byte of general-purpose register RA is copied to each element of VRT.
+}
+\end{multicols}
+
+\begin{multicols}{2}[%
+    \subsection{Saturating, fractional, halfword instructions}%
+]
+
+\fxvinst{Multiply accumulate halfword fractional saturating}{fxvmahfs}{28}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[16]{bit}}$
+        \State $M \gets \Call{add\_sat}{\text{ACC}_{i/8}, W, \unit[32]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets \Call{shift\_right}{M, 16}$
+        \EndIf
+
+    \EndFor
+}{%
+    Perform multiplication of registers VRA and VRB using fractional representation and saturating on overflows.
+    The double width result is added with the contents of the accumulation register again with saturation on overflow.
+    The upper 16 bits of the result are returned to register VRT if the condition is met.
+    The accumulation register is not modified.
+}
+
+
+\fxvinst{Move to accumulator halfword fractional}{fxvmtachf}{31}{%
+    \For {$0 \le i < 8$}
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/8} \gets (\text{VRA})_{i/8} \cdot 2^{16}$
+        \EndIf
+    \EndFor
+}{%
+    If enabled, the contents of elements in register VRA are copied to the accumulator aligned to the left.
+}
+
+
+\fxvinst{Multiply accumulate and save to accumulator halfword fractional}{fxvmatachfs}{60}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[16]{bit}}$
+        \State $M \gets \Call{add\_sat}{\text{ACC}_{i/8}, W, \unit[32]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/8} \gets M$
+        \EndIf
+    \EndFor
+}{%
+    Perform a multiply-add operation of registers VRA, VRB, and the accumulator using saturation and fractional arithmetics.
+    If enabled, the result is stored in the accumulator.
+}
+
+
+\fxvinst{Multiply halfword fractional saturating}{fxvmulhfs}{92}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets \Call{shift\_right}{M, 16}$
+        \EndIf
+    \EndFor
+}{%
+    Perform saturating multiplication in fractional representation of the contents of registers VRA and VRB.
+    Store the truncated result to register VRT if enabled.
+}
+
+
+\fxvinst{Multiply and save to accumulator halfword fractional saturating}{fxvmultachfs}{124}{%
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $v \gets (\text{VRB})_{i/8}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/8} \gets M$
+        \EndIf
+    \EndFor
+}{%
+    Perform saturating multiplication in fractional representation of the contents of registers VRA and VRB.
+    Store the result to the accumulator.
+}
+
+
+\fxvinst{Subtract halfword fractional saturating}{fxvsubhfs}{348}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $V \gets \Call{sign\_extend}{- (\text{VRB})_{i/8}}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[32]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets \Call{shift\_right}{W, 16}$
+        \EndIf
+    \EndFor
+}{%
+    Add the contents of register VRA to the negated contents of register VRB using saturation.
+    Store the truncated result to register VRT if enabled.
+}
+
+
+\fxvinst{Add accumulator and save to accumulator halfword fractional}{fxvaddactachf}{380}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $V \gets (\text{ACC})_{i/8}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[32]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/8} \gets W$
+        \EndIf
+    \EndFor
+}{%
+    Add the sign extended contents of register VRA to the accumulator using saturating arithmetics and store the result to the accumulator.
+}
+
+
+\fxvinst{Add accumulator halfword fractional saturating}{fxvaddachfs}{412}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $V \gets (\text{ACC})_{i/8}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[32]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets \Call{shift\_right}{W, 16}$
+        \EndIf
+    \EndFor
+}{%
+    Add the sign extended contents of register VRA to the accumulator using saturating arithmetics.
+    Store the truncated result to register VRT.
+}
+
+
+\fxvinst{Add halfword fractional saturating}{fxvaddhfs}{476}{%
+    \For {$0 \le i < 8$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/8}}$
+        \State $V \gets \Call{sign\_extend}{(\text{VRB})_{i/8}}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[32]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/8}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/8} \gets \Call{shift\_right}{W, 16}$
+        \EndIf
+    \EndFor
+}{%
+    Add the contents of registers VRA and VRB using saturating arithmetics.
+    Store the result to register VRT.
+}
+
+
+\end{multicols}
+
+
+\begin{multicols}{2}[%
+    \subsection{Saturating, fractional, byte instructions}%
+]
+
+\fxvinst{Multiply accumulate byte fractional saturating}{fxvmabfs}{29}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[8]{bit}}$
+        \State $M \gets \Call{add\_sat}{\text{ACC}_{i/16}, W, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets \Call{shift\_right}{M, 8}$
+        \EndIf
+
+    \EndFor
+}{%
+    Perform multiplication of registers VRA and VRB using fractional representation and saturating on overflows.
+    The double width result is added with the contents of the accumulation register again with saturation on overflow.
+    The upper 8 bits of the result are returned to register VRT if the condition is met.
+    The accumulation register is not modified.
+}
+
+
+\fxvinst{Move to accumulator byte fractional}{fxvmtacbf}{30}{%
+    \For {$0 \le i < 16$}
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/16} \gets (\text{VRA})_{i/16} \cdot 2^{8}$
+        \EndIf
+    \EndFor
+}{%
+    If enabled, the contents of elements in register VRA are copied to the accumulator aligned to the left.
+}
+
+
+\fxvinst{Multiply accumulate and save to accumulator byte fractional}{fxvmatacbfs}{61}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[8]{bit}}$
+        \State $M \gets \Call{add\_sat}{\text{ACC}_{i/16}, W, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/16} \gets M$
+        \EndIf
+    \EndFor
+}{%
+    Perform a multiply-add operation of registers VRA, VRB, and the accumulator using saturation and fractional arithmetics.
+    If enabled, the result is stored in the accumulator.
+}
+
+
+\fxvinst{Multiply byte fractional saturating}{fxvmulbfs}{93}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[8]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets \Call{shift\_right}{M, 8}$
+        \EndIf
+    \EndFor
+}{%
+    Perform saturating multiplication in fractional representation of the contents of registers VRA and VRB.
+    Store the truncated result to register VRT if enabled.
+}
+
+
+\fxvinst{Multiply and save to accumulator byte fractional saturating}{fxvmultacbfs}{125}{%
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        \State $W \gets \Call{mult\_sat\_fract}{u, v, \unit[8]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/16} \gets M$
+        \EndIf
+    \EndFor
+}{%
+    Perform saturating multiplication in fractional representation of the contents of registers VRA and VRB.
+    Store the result to the accumulator.
+}
+
+
+\fxvinst{Subtract byte fractional saturating}{fxvsubbfs}{349}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $V \gets \Call{sign\_extend}{- (\text{VRB})_{i/16}}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets \Call{shift\_right}{W, 8}$
+        \EndIf
+    \EndFor
+}{%
+    Add the contents of register VRA to the negated contents of register VRB using saturation.
+    Store the truncated result to register VRT if enabled.
+}
+
+
+\fxvinst{Add accumulator and save to accumulator byte fractional}{fxvaddactacbf}{381}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $V \gets (\text{ACC})_{i/16}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{ACC})_{i/16} \gets W$
+        \EndIf
+    \EndFor
+}{%
+    Add the sign extended contents of register VRA to the accumulator using saturating arithmetics and store the result to the accumulator.
+}
+
+
+\fxvinst{Add accumulator byte fractional saturating}{fxvaddacbfs}{413}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $V \gets (\text{ACC})_{i/16}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets \Call{shift\_right}{W, 8}$
+        \EndIf
+    \EndFor
+}{%
+    Add the sign extended contents of register VRA to the accumulator using saturating arithmetics.
+    Store the truncated result to register VRT.
+}
+
+
+\fxvinst{Add byte fractional saturating}{fxvaddbfs}{477}{%
+    \For {$0 \le i < 16$}
+        \State $U \gets \Call{sign\_extend}{(\text{VRA})_{i/16}}$
+        \State $V \gets \Call{sign\_extend}{(\text{VRB})_{i/16}}$
+        \State $W \gets \Call{add\_sat\_fract}{U, V, \unit[16]{bit}}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets \Call{shift\_right}{W, 8}$
+        \EndIf
+    \EndFor
+}{%
+    Add the contents of registers VRA and VRB using saturating arithmetics.
+    Store the result to register VRT.
+}
+
+
+\end{multicols}
+
+
+\begin{multicols}{2}[%
+    \subsection{Permute instructions}%
+]
+
+\fxvinst{Select}{fxvsel}{319}{%
+    % algorithmic description
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $v \gets (\text{VRB})_{i/16}$
+        
+        \State enable $\gets$ \Call{conditional}{C, VCR$_{i/16}$}
+
+        \If { enable }
+            \State $(\text{VRT})_{i/16} \gets v$
+        \Else
+            \State $(\text{VRT})_{i/16} \gets u$
+        \EndIf
+    \EndFor
+}{%
+    % plain text description
+    Use the contents of the condition register (VCR) to merge vectors VRA and VRB into the result vector VRT.
+    The condition code selects which field of VCR to use.
+    Select always merges bytewise.
+    Hint: use in conjunction with the appropriate compare operation.
+}
+
+
+\fxvinst{Shift left halfword}{fxvshh}{316}{%
+    % algorithmic description
+    \For {$0 \le i < 8$}
+        \State $u \gets (\text{VRA})_{i/8}$
+        \State $(\text{VRT})_{i/8} \gets \Call{shift\_left}{u, VRB}$
+    \EndFor
+}{%
+    % plain text description
+    Shift the contents of register VRA left halfword-wise by the amount VRB.
+    Here VRB is used as immediate value.
+    Store the result in register VRT.
+}
+
+
+\fxvinst{Shift left byte}{fxvshb}{317}{%
+    % algorithmic description
+    \For {$0 \le i < 16$}
+        \State $u \gets (\text{VRA})_{i/16}$
+        \State $(\text{VRT})_{i/16} \gets \Call{shift\_left}{u, VRB}$
+    \EndFor
+}{%
+    % plain text description
+    Shift the contents of register VRA left byte-wise by the amount VRB.
+    Here VRB is used as immediate value.
+    Store the result in register VRT.
+}
+    
+
+\fxvinst{Pack byte upper}{fxvpckbu}{239}{%
+    \State $m \gets \Call{shift\_right}{\texttt{0xffff}, C}$
+    \For {$0 \le i < 16$}
+        \If { $i < 4$ }
+            \State $u \gets \Call{shift\_right}{\text{VRA}_{2i/16}, C}$
+            \State $\text{VRT}_{i/16} \gets \Call{bitwise\_and}{u, m}$
+        \Else
+            \State $u \gets \Call{shift\_right}{\text{VRB}_{2(i-4)/16}, C}$
+            \State $\text{VRT}_{i/16} \gets \Call{bitwise\_and}{u, m}$
+        \EndIf
+    \EndFor
+}{%
+    Pack the upper half of fractional numbers of \unit[8-C]{bit} stored in halfword elements in registers VRA and VRB into register VRT, aligned to the right.
+}
+
+
+\fxvinst{Pack byte lower}{fxvpckbl}{255}{%
+    \State $m \gets \Call{shift\_right}{\texttt{0xffff}, C}$
+    \For {$0 \le i < 16$}
+        \If { $i < 4$ }
+            \State $u \gets \Call{shift\_left}{\text{VRA}_{2i/16}, 8-2C}$
+            \State $v \gets \Call{shift\_right}{\text{VRA}_{2i+1/16}, 2C}$
+            \State $w \gets \Call{bitwise\_or}{u, v}$
+            \State $\text{VRT}_{i/16} \gets \Call{bitwise\_and}{w, m}$
+        \Else
+            \State $u \gets \Call{shift\_right}{\text{VRB}_{2(i-4)/16}, C}$
+            \State $\text{VRT}_{i/16} \gets \Call{bitwise\_and}{u, m}$
+        \EndIf
+    \EndFor
+}{%
+    Pack the lower half of fractional numbers of \unit[8-C]{bit} stored in halfword elements in registers VRA and VRB into register VRT, aligned to the right.
+}
+
+
+\fxvinst{Unpack byte left}{fxvupckbl}{287}{%
+    \State
+}{%
+    Reverse the packing operation performed by fxvpckbu and fxvpckbl and store the left half of the elements in register VRT.
+}
+
+
+\fxvinst{Unpack byte right}{fxvupckbr}{271}{%
+    \State
+}{%
+    Reverse the packing operation performed by fxvpckbu and fxvpckbl and store the right half of the elements in register VRT.
+}
+
+\end{multicols}
+
+
+\begin{multicols}{2}[%
+    \subsection{Load/store instructions}
+]
+
+\fxvinstGPR{Load array indexed}{fxvlax}{492}{%
+    \If { RA = 0 }
+        \State $a \gets (\text{RB})$
+    \Else
+        \State $a \gets (\text{RA}) + (\text{RB})$
+    \EndIf
+
+    \For {$0 \le i < \text{NUM\_SLICES}$}
+        \For {$0 \le j < 4$}
+            \State $(\text{VRT})^{i}_{j\times 32 : (j+1)\times 32} \gets \Call{mem}{a, a+3}$
+            \State $a \gets a + 4$
+        \EndFor
+    \EndFor
+}{%
+    The effective address is computed from general purpose registers RA and RB.
+    If RA is zero, then the effective address is taken from RB.
+    The contents of the vector register indicated by VRT is loaded starting from the memory location indicated by the effective address across the complete array of slices.
+}
+
+
+\fxvinstGPR{Store array indexed}{fxvstax}{508}{%
+    \If { RA = 0 }
+        \State $a \gets (\text{RB})$
+    \Else
+        \State $a \gets (\text{RA}) + (\text{RB})$
+    \EndIf
+
+    \For {$0 \le i < \text{NUM\_SLICES}$}
+        \For {$0 \le j < 4$}
+            \State $\Call{mem}{a, a+3} \gets (\text{VRT})^{i}_{j\times 32 : (j+1)\times 32}$
+            \State $a \gets a + 4$
+        \EndFor
+    \EndFor
+}{%
+    The effective address is computed from general purpose registers RA and RB.
+    If RA is zero, then the effective address is taken from RB.
+    The contents of the vector register indicated by VRT is stored to memory starting from the location indicated by the effective address across the complete array of slices.
+}
+
+
+\fxvinstGPR{Input indexed}{fxvinx}{236}{%
+    \If { RA = 0 }
+        \State $a \gets (\text{RB})$
+    \Else
+        \State $a \gets (\text{RA}) + (\text{RB})$
+    \EndIf
+
+    \State $\underline{u} \gets \Call{io}{a}$
+
+    \For {$0 \le i < \text{NUM\_SLICES}$}
+        \For {$0 \le j < 16$}
+            \State $\text{VRT}_{j/16}^i \gets \underline{u}_{j/16}^i$
+        \EndFor
+    \EndFor
+}{%
+    The effective address is computed from general purpose registers RA and RB.
+    If RA is zero, then the effective address is taken from RB.
+    Data is loaded in parallel from the \gls{io} location referenced by the effective address and moved to the destination register VRT.
+}
+
+
+\fxvinstGPR{Output indexed}{fxvoutx}{252}{%
+    \If { RA = 0 }
+        \State $a \gets (\text{RB})$
+    \Else
+        \State $a \gets (\text{RA}) + (\text{RB})$
+    \EndIf
+
+    \State $\underline{u} \gets 0$
+
+    \For {$0 \le i < \text{NUM\_SLICES}$}
+        \For {$0 \le j < 16$}
+            \State $\underline{u}_{j/16}^i \gets \text{VRT}_{j/16}^i$
+        \EndFor
+    \EndFor
+
+    \State $\Call{io}{a} \gets \underline{u}$
+}{%
+    The effective address is computed from general purpose registers RA and RB.
+    If RA is zero, then the effective address is taken from RB.
+    The contents of registers VRT in all slices is written to the \gls{io} location referenced by the effective address.
+}
+
+\end{multicols}
+

@@ -1,0 +1,167 @@
+%\documentclass[oneside, DIV=11, BCOR=10mm]{scrbook}
+\documentclass[oneside]{scrbook}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{xspace}
+\usepackage{cite}
+\usepackage{minitoc}
+\setcounter{minitocdepth}{3}
+\usepackage[xindy,toc]{glossaries}
+\usepackage{todonotes}
+\usepackage{units}
+\usepackage{xstring}
+\usepackage[round,colon]{natbib}
+\usepackage[activate={true,nocompatibility}]{microtype}
+% code listings
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{url}
+\usepackage{bytefield}
+\lstdefinelanguage{powerasm}{
+  morekeywords={extern,text,add,addi,b,bl,stw,lis,li,lwz,synmtvr,synmfvr,synops,synswp,synm,syncmpi,syns,wait},
+  sensitive=true,
+  morecomment=[l]{\#}
+}
+\lstset{
+    basicstyle=\footnotesize\ttfamily,
+    numbers=left,
+    numberstyle=\tiny,
+    %stepnumber=5,
+    numbersep=5pt,
+    tabsize=2,
+    breaklines=true,
+    xleftmargin=17pt,
+    framexleftmargin=17pt,
+    framexrightmargin=5pt,
+    framexbottommargin=4pt
+}
+\lstloadlanguages{powerasm,c,bash}
+\usepackage{algpseudocode}
+% clickable links
+\usepackage[
+  pdftex,
+  pdfauthor={Simon Friedmann},
+  pdftitle={Plasticity Processor User Guide}
+]{hyperref}
+\hypersetup{
+  hidelinks=true,
+  colorlinks=false,
+  urlcolor=black,
+  linkcolor=black,
+  citecolor=black
+}
+% font selection
+\usepackage{mathpazo}
+\usepackage[scaled]{berasans}
+\usepackage{courier}
+
+\title{Nux User Guide}
+\author{Simon Friedmann}
+
+%
+% Glossaries
+%
+\makeglossaries
+\loadglsentries{src/glossaries.tex}
+
+%
+% custom macros
+%
+
+% template to typeset identifiers from code containing _ and :: characters
+\newcommand{\code}[1]{\texttt{%
+    \noexpandarg %
+    \StrSubstitute{#1}{_}{\textunderscore}[\x]%
+    \expandafter\StrSubstitute\expandafter{\x}{::}{$\dblcolon$}[\x]%
+    \x}\xspace}
+
+% template for file references
+\newcommand{\file}[1]{\path{#1}\xspace}
+
+% template for global parameter description list
+\newcommand{\ppuParameter}[4]{%
+    \item[\code{#1}]
+        type: \code{#2}, default: #3
+
+        #4
+}
+
+% template for port description list items
+\newcommand{\portItem}[3]{%
+    \item[\code{#1}]
+        type: \code{#2}
+
+        #3}
+
+% \fxvinst{name}{mnemnonic}{xo-code}{coding}{algorithm}{text}
+\newcommand{\fxvinst}[5]{%
+    \subsubsection[#2]{#1} % show mnemnonic in table of contents
+    \begin{bytefield}[bitwidth=0.5\textwidth/32]{32}
+        \bitheader{0,5,10,15,20,29,31} \\
+        \bitbox{6}{4}  \bitbox{5}{VRT}  \bitbox{5}{VRA}  \bitbox{5}{VRB}  \bitbox{9}{#3}  \bitbox{2}{C}
+    \end{bytefield} \\
+    \textbf{#2}\\
+    {\footnotesize
+    \begin{algorithmic}[1]
+    #4
+    \end{algorithmic} }
+    #5
+}
+
+% \fxvinstGPR{name}{mnemnonic}{xo-code}{coding}{algorithm}{text}
+\newcommand{\fxvinstGPR}[5]{%
+    \subsubsection[#2]{#1} % show mnemnonic in table of contents
+    \begin{bytefield}[bitwidth=0.5\textwidth/32]{32}
+        \bitheader{0,5,10,15,20,29,31} \\
+        \bitbox{6}{4}  \bitbox{5}{VRT}  \bitbox{5}{RA}  \bitbox{5}{RB}  \bitbox{9}{#3}  \bitbox{2}{/}
+    \end{bytefield} \\
+    \textbf{#2}\\
+    {\footnotesize
+    \begin{algorithmic}[1]
+        #4
+    \end{algorithmic} }
+    #5
+}
+
+% \fxvinstGPRa{name}{mnemnonic}{xo-code}{coding}{algorithm}{text}
+\newcommand{\fxvinstGPRa}[5]{%
+    \subsubsection[#2]{#1} % show mnemnonic in table of contents
+    \begin{bytefield}[bitwidth=0.5\textwidth/32]{32}
+        \bitheader{0,5,10,15,20,29,31} \\
+        \bitbox{6}{4}  \bitbox{5}{VRT}  \bitbox{5}{RA}  \bitbox{5}{/}  \bitbox{9}{#3}  \bitbox{2}{/}
+    \end{bytefield} \\
+    \textbf{#2}\\
+    {\footnotesize
+    \begin{algorithmic}[1]
+        #4
+    \end{algorithmic} }
+    #5
+}
+
+\begin{document}
+
+	\maketitle
+    \dominitoc
+    \tableofcontents
+
+    \input{src/intro.tex}
+    \input{src/use_hw.tex}
+    \input{src/use_sw.tex}
+
+    % Outline
+    %\chapter{Design Implementation Overview}
+    %\section{Frontend}
+    %\section{Functional units}
+    %\section{Peripheral logic}
+
+    \input{src/verification.tex}
+    \input{src/instructions.tex}
+    
+    \bibliographystyle{plainnat}
+    \bibliography{src/bibliography}
+
+\end{document}

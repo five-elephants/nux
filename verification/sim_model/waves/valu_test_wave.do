@@ -1,0 +1,84 @@
+onerror {resume}
+quietly WaveActivateNextPane {} 0
+add wave -noupdate -radix hexadecimal /Valu_test/clk_period
+add wave -noupdate -radix hexadecimal /Valu_test/NUM_ELEMS
+add wave -noupdate -radix hexadecimal /Valu_test/ELEM_SIZE
+add wave -noupdate -radix hexadecimal /Valu_test/SCALAR_SIZE
+add wave -noupdate -radix hexadecimal /Valu_test/MULT_STAGES
+add wave -noupdate -radix hexadecimal /Valu_test/ADD_STAGES
+add wave -noupdate -radix hexadecimal /Valu_test/DELAY
+add wave -noupdate -radix hexadecimal /Valu_test/clk
+add wave -noupdate -radix hexadecimal /Valu_test/reset
+add wave -noupdate -radix hexadecimal /Valu_test/valid
+add wave -noupdate -radix hexadecimal -childformat {{/Valu_test/op.mult -radix hexadecimal} {/Valu_test/op.add -radix hexadecimal} {/Valu_test/op.scalar -radix hexadecimal} {/Valu_test/op.op_type -radix hexadecimal}} -expand -subitemconfig {/Valu_test/op.mult {-height 16 -radix hexadecimal} /Valu_test/op.add {-height 16 -radix hexadecimal} /Valu_test/op.scalar {-height 16 -radix hexadecimal} /Valu_test/op.op_type {-height 16 -radix hexadecimal}} /Valu_test/op
+add wave -noupdate -radix hexadecimal /Valu_test/a
+add wave -noupdate -radix hexadecimal /Valu_test/b
+add wave -noupdate -radix hexadecimal /Valu_test/g
+add wave -noupdate -radix hexadecimal -childformat {{{/Valu_test/y[127]} -radix hexadecimal} {{/Valu_test/y[126]} -radix hexadecimal} {{/Valu_test/y[125]} -radix hexadecimal} {{/Valu_test/y[124]} -radix hexadecimal} {{/Valu_test/y[123]} -radix hexadecimal} {{/Valu_test/y[122]} -radix hexadecimal} {{/Valu_test/y[121]} -radix hexadecimal} {{/Valu_test/y[120]} -radix hexadecimal} {{/Valu_test/y[119]} -radix hexadecimal} {{/Valu_test/y[118]} -radix hexadecimal} {{/Valu_test/y[117]} -radix hexadecimal} {{/Valu_test/y[116]} -radix hexadecimal} {{/Valu_test/y[115]} -radix hexadecimal} {{/Valu_test/y[114]} -radix hexadecimal} {{/Valu_test/y[113]} -radix hexadecimal} {{/Valu_test/y[112]} -radix hexadecimal} {{/Valu_test/y[111]} -radix hexadecimal} {{/Valu_test/y[110]} -radix hexadecimal} {{/Valu_test/y[109]} -radix hexadecimal} {{/Valu_test/y[108]} -radix hexadecimal} {{/Valu_test/y[107]} -radix hexadecimal} {{/Valu_test/y[106]} -radix hexadecimal} {{/Valu_test/y[105]} -radix hexadecimal} {{/Valu_test/y[104]} -radix hexadecimal} {{/Valu_test/y[103]} -radix hexadecimal} {{/Valu_test/y[102]} -radix hexadecimal} {{/Valu_test/y[101]} -radix hexadecimal} {{/Valu_test/y[100]} -radix hexadecimal} {{/Valu_test/y[99]} -radix hexadecimal} {{/Valu_test/y[98]} -radix hexadecimal} {{/Valu_test/y[97]} -radix hexadecimal} {{/Valu_test/y[96]} -radix hexadecimal} {{/Valu_test/y[95]} -radix hexadecimal} {{/Valu_test/y[94]} -radix hexadecimal} {{/Valu_test/y[93]} -radix hexadecimal} {{/Valu_test/y[92]} -radix hexadecimal} {{/Valu_test/y[91]} -radix hexadecimal} {{/Valu_test/y[90]} -radix hexadecimal} {{/Valu_test/y[89]} -radix hexadecimal} {{/Valu_test/y[88]} -radix hexadecimal} {{/Valu_test/y[87]} -radix hexadecimal} {{/Valu_test/y[86]} -radix hexadecimal} {{/Valu_test/y[85]} -radix hexadecimal} {{/Valu_test/y[84]} -radix hexadecimal} {{/Valu_test/y[83]} -radix hexadecimal} {{/Valu_test/y[82]} -radix hexadecimal} {{/Valu_test/y[81]} -radix hexadecimal} {{/Valu_test/y[80]} -radix hexadecimal} {{/Valu_test/y[79]} -radix hexadecimal} {{/Valu_test/y[78]} -radix hexadecimal} {{/Valu_test/y[77]} -radix hexadecimal} {{/Valu_test/y[76]} -radix hexadecimal} {{/Valu_test/y[75]} -radix hexadecimal} {{/Valu_test/y[74]} -radix hexadecimal} {{/Valu_test/y[73]} -radix hexadecimal} {{/Valu_test/y[72]} -radix hexadecimal} {{/Valu_test/y[71]} -radix hexadecimal} {{/Valu_test/y[70]} -radix hexadecimal} {{/Valu_test/y[69]} -radix hexadecimal} {{/Valu_test/y[68]} -radix hexadecimal} {{/Valu_test/y[67]} -radix hexadecimal} {{/Valu_test/y[66]} -radix hexadecimal} {{/Valu_test/y[65]} -radix hexadecimal} {{/Valu_test/y[64]} -radix hexadecimal} {{/Valu_test/y[63]} -radix hexadecimal} {{/Valu_test/y[62]} -radix hexadecimal} {{/Valu_test/y[61]} -radix hexadecimal} {{/Valu_test/y[60]} -radix hexadecimal} {{/Valu_test/y[59]} -radix hexadecimal} {{/Valu_test/y[58]} -radix hexadecimal} {{/Valu_test/y[57]} -radix hexadecimal} {{/Valu_test/y[56]} -radix hexadecimal} {{/Valu_test/y[55]} -radix hexadecimal} {{/Valu_test/y[54]} -radix hexadecimal} {{/Valu_test/y[53]} -radix hexadecimal} {{/Valu_test/y[52]} -radix hexadecimal} {{/Valu_test/y[51]} -radix hexadecimal} {{/Valu_test/y[50]} -radix hexadecimal} {{/Valu_test/y[49]} -radix hexadecimal} {{/Valu_test/y[48]} -radix hexadecimal} {{/Valu_test/y[47]} -radix hexadecimal} {{/Valu_test/y[46]} -radix hexadecimal} {{/Valu_test/y[45]} -radix hexadecimal} {{/Valu_test/y[44]} -radix hexadecimal} {{/Valu_test/y[43]} -radix hexadecimal} {{/Valu_test/y[42]} -radix hexadecimal} {{/Valu_test/y[41]} -radix hexadecimal} {{/Valu_test/y[40]} -radix hexadecimal} {{/Valu_test/y[39]} -radix hexadecimal} {{/Valu_test/y[38]} -radix hexadecimal} {{/Valu_test/y[37]} -radix hexadecimal} {{/Valu_test/y[36]} -radix hexadecimal} {{/Valu_test/y[35]} -radix hexadecimal} {{/Valu_test/y[34]} -radix hexadecimal} {{/Valu_test/y[33]} -radix hexadecimal} {{/Valu_test/y[32]} -radix hexadecimal} {{/Valu_test/y[31]} -radix hexadecimal} {{/Valu_test/y[30]} -radix hexadecimal} {{/Valu_test/y[29]} -radix hexadecimal} {{/Valu_test/y[28]} -radix hexadecimal} {{/Valu_test/y[27]} -radix hexadecimal} {{/Valu_test/y[26]} -radix hexadecimal} {{/Valu_test/y[25]} -radix hexadecimal} {{/Valu_test/y[24]} -radix hexadecimal} {{/Valu_test/y[23]} -radix hexadecimal} {{/Valu_test/y[22]} -radix hexadecimal} {{/Valu_test/y[21]} -radix hexadecimal} {{/Valu_test/y[20]} -radix hexadecimal} {{/Valu_test/y[19]} -radix hexadecimal} {{/Valu_test/y[18]} -radix hexadecimal} {{/Valu_test/y[17]} -radix hexadecimal} {{/Valu_test/y[16]} -radix hexadecimal} {{/Valu_test/y[15]} -radix hexadecimal} {{/Valu_test/y[14]} -radix hexadecimal} {{/Valu_test/y[13]} -radix hexadecimal} {{/Valu_test/y[12]} -radix hexadecimal} {{/Valu_test/y[11]} -radix hexadecimal} {{/Valu_test/y[10]} -radix hexadecimal} {{/Valu_test/y[9]} -radix hexadecimal} {{/Valu_test/y[8]} -radix hexadecimal} {{/Valu_test/y[7]} -radix hexadecimal} {{/Valu_test/y[6]} -radix hexadecimal} {{/Valu_test/y[5]} -radix hexadecimal} {{/Valu_test/y[4]} -radix hexadecimal} {{/Valu_test/y[3]} -radix hexadecimal} {{/Valu_test/y[2]} -radix hexadecimal} {{/Valu_test/y[1]} -radix hexadecimal} {{/Valu_test/y[0]} -radix hexadecimal}} -subitemconfig {{/Valu_test/y[127]} {-height 16 -radix hexadecimal} {/Valu_test/y[126]} {-height 16 -radix hexadecimal} {/Valu_test/y[125]} {-height 16 -radix hexadecimal} {/Valu_test/y[124]} {-height 16 -radix hexadecimal} {/Valu_test/y[123]} {-height 16 -radix hexadecimal} {/Valu_test/y[122]} {-height 16 -radix hexadecimal} {/Valu_test/y[121]} {-height 16 -radix hexadecimal} {/Valu_test/y[120]} {-height 16 -radix hexadecimal} {/Valu_test/y[119]} {-height 16 -radix hexadecimal} {/Valu_test/y[118]} {-height 16 -radix hexadecimal} {/Valu_test/y[117]} {-height 16 -radix hexadecimal} {/Valu_test/y[116]} {-height 16 -radix hexadecimal} {/Valu_test/y[115]} {-height 16 -radix hexadecimal} {/Valu_test/y[114]} {-height 16 -radix hexadecimal} {/Valu_test/y[113]} {-height 16 -radix hexadecimal} {/Valu_test/y[112]} {-height 16 -radix hexadecimal} {/Valu_test/y[111]} {-height 16 -radix hexadecimal} {/Valu_test/y[110]} {-height 16 -radix hexadecimal} {/Valu_test/y[109]} {-height 16 -radix hexadecimal} {/Valu_test/y[108]} {-height 16 -radix hexadecimal} {/Valu_test/y[107]} {-height 16 -radix hexadecimal} {/Valu_test/y[106]} {-height 16 -radix hexadecimal} {/Valu_test/y[105]} {-height 16 -radix hexadecimal} {/Valu_test/y[104]} {-height 16 -radix hexadecimal} {/Valu_test/y[103]} {-height 16 -radix hexadecimal} {/Valu_test/y[102]} {-height 16 -radix hexadecimal} {/Valu_test/y[101]} {-height 16 -radix hexadecimal} {/Valu_test/y[100]} {-height 16 -radix hexadecimal} {/Valu_test/y[99]} {-height 16 -radix hexadecimal} {/Valu_test/y[98]} {-height 16 -radix hexadecimal} {/Valu_test/y[97]} {-height 16 -radix hexadecimal} {/Valu_test/y[96]} {-height 16 -radix hexadecimal} {/Valu_test/y[95]} {-height 16 -radix hexadecimal} {/Valu_test/y[94]} {-height 16 -radix hexadecimal} {/Valu_test/y[93]} {-height 16 -radix hexadecimal} {/Valu_test/y[92]} {-height 16 -radix hexadecimal} {/Valu_test/y[91]} {-height 16 -radix hexadecimal} {/Valu_test/y[90]} {-height 16 -radix hexadecimal} {/Valu_test/y[89]} {-height 16 -radix hexadecimal} {/Valu_test/y[88]} {-height 16 -radix hexadecimal} {/Valu_test/y[87]} {-height 16 -radix hexadecimal} {/Valu_test/y[86]} {-height 16 -radix hexadecimal} {/Valu_test/y[85]} {-height 16 -radix hexadecimal} {/Valu_test/y[84]} {-height 16 -radix hexadecimal} {/Valu_test/y[83]} {-height 16 -radix hexadecimal} {/Valu_test/y[82]} {-height 16 -radix hexadecimal} {/Valu_test/y[81]} {-height 16 -radix hexadecimal} {/Valu_test/y[80]} {-height 16 -radix hexadecimal} {/Valu_test/y[79]} {-height 16 -radix hexadecimal} {/Valu_test/y[78]} {-height 16 -radix hexadecimal} {/Valu_test/y[77]} {-height 16 -radix hexadecimal} {/Valu_test/y[76]} {-height 16 -radix hexadecimal} {/Valu_test/y[75]} {-height 16 -radix hexadecimal} {/Valu_test/y[74]} {-height 16 -radix hexadecimal} {/Valu_test/y[73]} {-height 16 -radix hexadecimal} {/Valu_test/y[72]} {-height 16 -radix hexadecimal} {/Valu_test/y[71]} {-height 16 -radix hexadecimal} {/Valu_test/y[70]} {-height 16 -radix hexadecimal} {/Valu_test/y[69]} {-height 16 -radix hexadecimal} {/Valu_test/y[68]} {-height 16 -radix hexadecimal} {/Valu_test/y[67]} {-height 16 -radix hexadecimal} {/Valu_test/y[66]} {-height 16 -radix hexadecimal} {/Valu_test/y[65]} {-height 16 -radix hexadecimal} {/Valu_test/y[64]} {-height 16 -radix hexadecimal} {/Valu_test/y[63]} {-height 16 -radix hexadecimal} {/Valu_test/y[62]} {-height 16 -radix hexadecimal} {/Valu_test/y[61]} {-height 16 -radix hexadecimal} {/Valu_test/y[60]} {-height 16 -radix hexadecimal} {/Valu_test/y[59]} {-height 16 -radix hexadecimal} {/Valu_test/y[58]} {-height 16 -radix hexadecimal} {/Valu_test/y[57]} {-height 16 -radix hexadecimal} {/Valu_test/y[56]} {-height 16 -radix hexadecimal} {/Valu_test/y[55]} {-height 16 -radix hexadecimal} {/Valu_test/y[54]} {-height 16 -radix hexadecimal} {/Valu_test/y[53]} {-height 16 -radix hexadecimal} {/Valu_test/y[52]} {-height 16 -radix hexadecimal} {/Valu_test/y[51]} {-height 16 -radix hexadecimal} {/Valu_test/y[50]} {-height 16 -radix hexadecimal} {/Valu_test/y[49]} {-height 16 -radix hexadecimal} {/Valu_test/y[48]} {-height 16 -radix hexadecimal} {/Valu_test/y[47]} {-height 16 -radix hexadecimal} {/Valu_test/y[46]} {-height 16 -radix hexadecimal} {/Valu_test/y[45]} {-height 16 -radix hexadecimal} {/Valu_test/y[44]} {-height 16 -radix hexadecimal} {/Valu_test/y[43]} {-height 16 -radix hexadecimal} {/Valu_test/y[42]} {-height 16 -radix hexadecimal} {/Valu_test/y[41]} {-height 16 -radix hexadecimal} {/Valu_test/y[40]} {-height 16 -radix hexadecimal} {/Valu_test/y[39]} {-height 16 -radix hexadecimal} {/Valu_test/y[38]} {-height 16 -radix hexadecimal} {/Valu_test/y[37]} {-height 16 -radix hexadecimal} {/Valu_test/y[36]} {-height 16 -radix hexadecimal} {/Valu_test/y[35]} {-height 16 -radix hexadecimal} {/Valu_test/y[34]} {-height 16 -radix hexadecimal} {/Valu_test/y[33]} {-height 16 -radix hexadecimal} {/Valu_test/y[32]} {-height 16 -radix hexadecimal} {/Valu_test/y[31]} {-height 16 -radix hexadecimal} {/Valu_test/y[30]} {-height 16 -radix hexadecimal} {/Valu_test/y[29]} {-height 16 -radix hexadecimal} {/Valu_test/y[28]} {-height 16 -radix hexadecimal} {/Valu_test/y[27]} {-height 16 -radix hexadecimal} {/Valu_test/y[26]} {-height 16 -radix hexadecimal} {/Valu_test/y[25]} {-height 16 -radix hexadecimal} {/Valu_test/y[24]} {-height 16 -radix hexadecimal} {/Valu_test/y[23]} {-height 16 -radix hexadecimal} {/Valu_test/y[22]} {-height 16 -radix hexadecimal} {/Valu_test/y[21]} {-height 16 -radix hexadecimal} {/Valu_test/y[20]} {-height 16 -radix hexadecimal} {/Valu_test/y[19]} {-height 16 -radix hexadecimal} {/Valu_test/y[18]} {-height 16 -radix hexadecimal} {/Valu_test/y[17]} {-height 16 -radix hexadecimal} {/Valu_test/y[16]} {-height 16 -radix hexadecimal} {/Valu_test/y[15]} {-height 16 -radix hexadecimal} {/Valu_test/y[14]} {-height 16 -radix hexadecimal} {/Valu_test/y[13]} {-height 16 -radix hexadecimal} {/Valu_test/y[12]} {-height 16 -radix hexadecimal} {/Valu_test/y[11]} {-height 16 -radix hexadecimal} {/Valu_test/y[10]} {-height 16 -radix hexadecimal} {/Valu_test/y[9]} {-height 16 -radix hexadecimal} {/Valu_test/y[8]} {-height 16 -radix hexadecimal} {/Valu_test/y[7]} {-height 16 -radix hexadecimal} {/Valu_test/y[6]} {-height 16 -radix hexadecimal} {/Valu_test/y[5]} {-height 16 -radix hexadecimal} {/Valu_test/y[4]} {-height 16 -radix hexadecimal} {/Valu_test/y[3]} {-height 16 -radix hexadecimal} {/Valu_test/y[2]} {-height 16 -radix hexadecimal} {/Valu_test/y[1]} {-height 16 -radix hexadecimal} {/Valu_test/y[0]} {-height 16 -radix hexadecimal}} /Valu_test/y
+add wave -noupdate -divider Control
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/clk
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/reset
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/valid
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/op
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_mult_conf
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_add_conf
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_add_in_a_sel
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_add_in_b_sel
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_result_sel
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_mult_pipe_enable
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/next_add_pipe_enable
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/delayed_add_pipe_enable
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/mult_pipe_enable_shr
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ctrl_ut/add_pipe_enable_shr
+add wave -noupdate -divider {Control Interface}
+add wave -noupdate /Valu_test/valu_ctrl_if/mult_conf
+add wave -noupdate /Valu_test/valu_ctrl_if/add_conf
+add wave -noupdate /Valu_test/valu_ctrl_if/add_in_a_sel
+add wave -noupdate /Valu_test/valu_ctrl_if/add_in_b_sel
+add wave -noupdate /Valu_test/valu_ctrl_if/mult_pipe_enable
+add wave -noupdate /Valu_test/valu_ctrl_if/add_pipe_enable
+add wave -noupdate /Valu_test/valu_ctrl_if/result_sel
+add wave -noupdate /Valu_test/valu_ctrl_if/round_conf
+add wave -noupdate /Valu_test/valu_ctrl_if/c_shift_left
+add wave -noupdate /Valu_test/valu_ctrl_if/res_shift_right
+add wave -noupdate -divider Internals
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/clk
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/reset
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/a
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/b
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/c
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/g
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/y
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/repeated_g
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/va
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/vb
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/vc
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/vg
+add wave -noupdate -radix hexadecimal /Valu_test/valu_ut/vy
+add wave -noupdate -divider {element 0}
+add wave -noupdate -radix decimal {/Valu_test/valu_ut/gen_elem[0]/i_elem}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/next_product}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/product}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/add_in_a_ext}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/add_in_b_ext}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/next_add_res}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/add_res}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/shift_in}
+add wave -noupdate -radix hexadecimal {/Valu_test/valu_ut/gen_elem[0]/round_in}
+TreeUpdate [SetDefaultTree]
+WaveRestoreCursors {{Cursor 1} {105000 ps} 0}
+configure wave -namecolwidth 199
+configure wave -valuecolwidth 151
+configure wave -justifyvalue left
+configure wave -signalnamewidth 1
+configure wave -snapdistance 10
+configure wave -datasetprefix 0
+configure wave -rowmargin 4
+configure wave -childrowmargin 2
+configure wave -gridoffset 0
+configure wave -gridperiod 1
+configure wave -griddelta 40
+configure wave -timeline 0
+configure wave -timelineunits ns
+update
+WaveRestoreZoom {74740 ps} {324970 ps}

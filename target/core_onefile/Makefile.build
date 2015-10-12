@@ -1,0 +1,47 @@
+# Copyright 2015 Heidelberg University Copyright and related rights are
+# licensed under the Solderpad Hardware License, Version 0.51 (the "License");
+# you may not use this file except in compliance with the License. You may obtain
+# a copy of the License at http://solderpad.org/licenses/SHL-0.51. Unless
+# required by applicable law or agreed to in writing, software, hardware and
+# materials distributed under this License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+# the License for the specific language governing permissions and limitations
+# under the License.
+
+
+include $(CONFIGFILE)
+-include Makefile.srclist
+
+VPATH = .:$(BUILDDIR)
+
+M4:=m4
+M4_PARAM:=-I$(ROOTDIR)/src/m4
+
+build: $(BUILDDIR) $(special-y) subdirs $(patsubst %.sv, $(BUILDDIR)/%.build, $(src-y))
+
+subdirs:
+	@for subdir in $(subdirs-y) ; do \
+		$(MAKE) -C $$subdir -f $(TOP)/Makefile.build BUILDDIR=$(BUILDDIR)/$$subdir ; \
+	done
+
+$(BUILDDIR):
+	mkdir $(BUILDDIR)
+
+.PHONY: rec_clean $(clean-y)
+rec_clean: $(clean-y)
+	@for subdir in $(subdirs-y) ; do \
+		$(MAKE) -C $$subdir -f $(TOP)/Makefile.build BUILDDIR=$(BUILDDIR)/$$subdir rec_clean ; \
+	done
+
+$(BUILDDIR)/%.build: $(BUILDDIR)/%.preproc.sv
+	@echo "// file: $<" >> $(RESULT_FILE)
+	@cat $< >> $(RESULT_FILE)
+	@echo -e "\033[32m[concatenate] $< \033[0m"
+
+$(BUILDDIR)/%.preproc.sv: $(CURDIR)/%.sv
+	@awk '/_use_m4_/ {exit 0} {exit 1}' $< ; \
+	if [ "$$?" == "0" ] ; then \
+		echo -e "\033[32m[m4] $<\033[0m" && $(M4) $(M4_PARAM) $< > $@ ; \
+	else \
+		cp $< $@ ; \
+	fi

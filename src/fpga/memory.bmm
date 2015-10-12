@@ -1,0 +1,14 @@
+ADDRESS_SPACE imem RAMB32 [0:4095]
+	// instruction memory
+	BUS_BLOCK
+		imem/RAMB36_inst [31:0];
+	END_BUS_BLOCK;
+END_ADDRESS_SPACE;
+
+ADDRESS_SPACE dmem RAMB32 [0:4095]
+	// data memory
+	BUS_BLOCK
+		dmem/RAMB36_inst [31:0];
+	END_BUS_BLOCK;
+END_ADDRESS_SPACE;
+

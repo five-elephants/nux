@@ -1,0 +1,6 @@
+export ROOTDIR :=$(shell pwd)/../..
+export BUILDDIR := build
+
+# possible: virtex5 generic
+export PLATFORM = generic 
+

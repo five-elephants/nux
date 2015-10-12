@@ -1,0 +1,5 @@
+export ROOTDIR:=$(shell pwd)/../..
+BUILDDIR:=build
+
+# possible: tsmc65 umc180
+export PLATFORM := tsmc65

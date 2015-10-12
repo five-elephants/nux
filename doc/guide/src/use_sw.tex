@@ -1,0 +1,283 @@
+\chapter{Running software on Nux}
+\label{ch:usesw}
+
+Executing a program on Nux in hardware or simulation requires three steps outlined in the next three sections.
+First, you have to build a cross-compiler for the PowerISA.
+If you want to use \gls{fxv} instructions, binutils needs to be patched.
+For the actual execution implementation specific software is required to interface with Nux.
+
+
+\section{Building a cross-compiler}
+Any cross-compiler will do that emits code for the target triple ``powerpc-linux-eabi'', i.e.\ Power instruction set architecture using the \gls{eabi} \citep{IBM1998} for Linux.
+Although the latter is probably irrelevant.
+In the repository an installation script is provided to compile gcc from source (\file{support/gcc/install.sh}).
+You may want to change the \code{PREFIX} variable at the top to select the target installation directory.
+You may also want to select newer package versions if available or modify mirror locations if there are errors while downloading.
+System libraries (e.g.\ mpfr, gmp, mpc, \ldots) should be used over manually compile ones.
+Refer to \cite{installgcc} for required minimum versions.
+
+The goal of the installation script is to build a minimal gcc with support for C but without libc.
+
+
+\section{Patching binutils for vector operations}
+
+A patch for binutils is provided in directory \file{support/binutils/}.
+To apply use patch:
+\begin{lstlisting}[language=bash]
+    $ tar jxf binutils-2.25.tar.bz2
+    $ patch -p0 <binutils-2.25.patch
+\end{lstlisting}
+Then compile using the install script.
+
+This patch simply adds the non-standard \gls{fxv} instructions to the PowerPC opcode table in binutils.
+It thereby enables support for these instructions by the assembler and disassembler (\texttt{objdump -d}).
+Therefore, instructions can also be used in gcc inline assembly.
+
+
+\section{Compiling programs}
+
+The processor starts execution after reset is released at address 0.
+Also, exceptions trigger a control transfer to fixed locations in the range from address 4 to 44.
+The final result of compilation is therefore to generate a binary image that can be written to memory with valid code at the correct addresses.
+This is achieved by a special linker script \code{linker.x} and an assembler wrapper \code{cshell.s}.
+
+
+\subsection{Assembly wrapper for C code}
+An example wrapper is discussed below:
+\begin{lstlisting}[language=powerasm]
+# chsell.s -- part a
+.extern start 
+.extern reset
+.extern _isr_undefined
+.extern isr_einput
+.extern isr_alignemnt
+.extern isr_program
+.extern isr_doorbell
+.extern isr_fit
+.extern isr_dec
+
+.extern stack_ptr_init
+\end{lstlisting}
+This declares symbols that can be overwritten by other parts of the program.
+The \code{start} symbol declared on line 2 is the entry point for the C code.
+It is defined by declaring a function \texttt{void start()} in your C code.
+The \code{isr_*} symbols on lines 5 to 10 represent interrupt service routines.
+The \code{_isr_undefined} symbol is a default handler that is used if no service routine is defined.
+
+\begin{lstlisting}[language=powerasm]
+# chsell.s -- part b
+.text
+.extern _start:
+reset:
+	b __init
+
+	# interrupt jump table
+	int_mcheck:    b _isr_undefined
+	int_cinput:    b _isr_undefined
+	int_dstorage:  b _isr_undefined
+	int_istorage:  b _isr_undefined
+	int_einput:    b isr_einput
+	int_alignment: b isr_alignment 
+	int_program:   b isr_program
+	int_syscall:   b _isr_undefined
+	int_doorbell:  b isr_doorbell
+	int_cdoorbell: b _isr_undefined
+	int_fit:       b isr_fit
+	int_dec:       b isr_dec
+\end{lstlisting}
+This block is the start of the code section of the binary.
+It begins on line 5 with a branch to the \code{__init} symbol defined below.
+The linker script ensures that this instruction resides at address 0 of the produced binary image.
+After that follows the interrupt jump table on lines 8 through 19.
+It consists of branches to interrupt service routines, which are located at the appropriate addresses defined by the hardware implementation.
+
+
+\begin{lstlisting}[language=powerasm]
+# chsell.s -- part c
+__init:
+	# set the stack pointer
+	lis 1, stack_ptr_init@h
+	addi 1, 1, stack_ptr_init@l
+	# start actual program
+	bl start
+
+end_loop:
+	wait
+	b end_loop
+\end{lstlisting}
+This fragment initialises the stack pointer in general-purpose register 1 as defined by the \gls{eabi} \citep{IBM1998}.
+The symbol \code{stack_ptr_init} is defined by the linker script to match the size of the implemented memory.
+After initialization on line 7, the wrapper calls the user code at the \code{start} symbol.
+If user code returns from the start() function, the loop at the end sends the processor to sleep.
+In case of wake-up events, the appropriate service routine will be taken through the interrupt jump table.
+On return from the service routine, the branch on line 11 ensures a return to the sleep state.
+
+
+\subsection{Linker script}
+The linker script \code{linker.x} is passed to the linker to configure how the resulting binary is generated.
+An example is discussed below:
+
+\begin{lstlisting}
+MEMORY {
+	ram(rwx) : ORIGIN = 0, LENGTH = 16K
+}
+\end{lstlisting}
+This specifies the memory layout of the implementation.
+In the given case we have one memory region with a size of \unit[16]{kib} starting at address 0.
+In a tight memory configuration ($ \code{OPT_MEM} = \code{Pu_types::MEM_TIGHT}$) there would be two locations here for data and code.
+
+
+\begin{lstlisting}
+mailbox_size = 4096;
+mailbox_end = 0x4000;
+mailbox_base = mailbox_end - mailbox_size;
+stack_ptr_init = mailbox_base - 8;
+\end{lstlisting}
+The intention here is to create a reserved memory region at the end called mailbox.
+This is used for communication with the environment by software running on Nux.
+The stack pointer is initialized to start at lower addresses than the mailbox region.
+Note, that the \file{cshell.s} wrapper uses the \code{stack_ptr_init} symbol to do the actual initialization of register 1.
+
+
+\begin{lstlisting}
+SECTIONS {
+	.text : {
+        _isr_undefined = .;
+
+        *cshell.o(.text)
+        *(.text)
+
+        PROVIDE(isr_einput = _isr_undefined);
+        PROVIDE(isr_alignment = _isr_undefined);
+        PROVIDE(isr_program = _isr_undefined);
+        PROVIDE(isr_doorbell = _isr_undefined);
+        PROVIDE(isr_fit = _isr_undefined);
+        PROVIDE(isr_dec = _isr_undefined);
+	} > ram
+
+	.data : {
+		*(.data)
+		*(.rodata)
+	} > ram
+
+	.bss : {
+		*(.bss)
+		*(.sbss)
+	} > ram
+
+  /DISCARD/ : {
+    *(.eh_frame)
+  }
+}
+\end{lstlisting}
+This part specifies, where generated code sections should be mapped.
+We use only the three sections \code{text} for instructions, \code{data} for data, and \code{bss} for zeroed data.
+Line 5 ensures, that the wrapper is positioned at memory location 0, so that reset and interrupt handling work correctly.
+Line 3 defines the default interrupt handler \code{_isr_undefined} to be equivalent to the reset vector at address 0.
+Lines 8 to 13 connect the default handler to all interrupt service routines that were not defined in user code.
+
+
+\subsection{Minimum user code}
+
+Minimal C user code consists of just the start() function:
+\begin{lstlisting}[language=c]
+    void start() {
+    }
+\end{lstlisting}
+\subsection{Generating the binary image}
+
+Generating the final binary image involves three steps:
+\begin{enumerate}
+    \item Compile source files to object files.
+    \item Link object files to executable.
+    \item Extract binary image of \code{.text} and \code{.data} sections out of the executable.
+\end{enumerate}
+
+The following examples assume an architecture with single main memory as shown in Figure~\ref{fig:ppuinst}.
+When using two memories, two images have to be extracted at the end, which requires a different \code{linker.x} file as the one shown above.
+The examples also assume, that gcc binaries are visible through the \code{PATH} variable and that it was installed with prefix \code{powerpc-linux-eabi}.
+
+
+\subsubsection{Compiling}
+
+The assembly wrapper has to be assembled:
+\begin{lstlisting}
+    $ powerpc-linux-eabi-as -mpower7 cshell.s -o cshell.o
+\end{lstlisting}
+And C-source compiled:
+\begin{lstlisting}
+    $ powerpc-linux-eabi-gcc -c <sourcefile> -o <objectfile> \
+        -ffreestanding   \
+        -msdata=none     \
+        -mstrict-align   \
+        -msoft-float     \
+        -mno-relocatable
+\end{lstlisting}
+The exact meaning of options is given in \cite{gccmanual}.
+The first option on line 2 tells the compiler to use a ``freestanding'' environment.
+From the gcc manual:
+\begin{quote}
+   A freestanding environment is one in which the standard library may not exist, and program startup may not necessarily be at main.
+   The most obvious example is an OS kernel. 
+\end{quote}
+Line 3 disables the use of the \code{.sdata} (small data) section in generated code.
+Refer to \cite{IBM1998} to learn how this section would be used.
+Line 4 avoids unaligned memory accesses.
+The PowerISA allows embedded implementations to raise an exception on unaligned loads and stores, which is what this implementation does.
+Line 5 disables the use of floating point instructions.
+Floating point math is instead implemented in software.
+Line 6 tells the compiler, that code may not be relocated to a different address at runtime.
+
+
+\subsubsection{Linking}
+
+The executable is generated by the linker:
+\begin{lstlisting}
+    $ powerpc-linux-eabi-ld cshell.o <obj1.o> ... -o <binary.elf> \
+        -T linker.x  \
+        -static      \
+        -nostdlib    \
+        -lgcc
+\end{lstlisting}
+Line 2 tells the linker to use a specified linker script.
+Line 3 uses static linking of libraries.
+Line 4 disables linking of standard libraries, especially libc (which we do not have).
+Line 5 links libgcc.
+This is a gcc internal library with routines that the compiler might use instead of directly emitting code for them.
+For example, optimized implementations of \code{memcpy} or soft floating point implementations.
+See \cite{libgcc} for more information.
+
+
+\subsubsection{Extracting the binary image}
+
+The objcopy command from binutils allows to extract the raw bits from the executable:
+\begin{lstlisting}
+    $ powerpc-linux-eabi-objcopy -O binary <binary.elf> <image.raw>
+\end{lstlisting}
+
+
+\subsection{Useful commands}
+
+To inspect the resulting image you can use the hexdump program:
+\begin{lstlisting}
+    $ hexdump -C <image.raw>
+\end{lstlisting}
+It outputs a hex-dump to stdout.
+
+The executable can be inspected using readelf to get information about symbol (variables and functions) locations.
+Objdump contains a dissasembler:
+\begin{lstlisting}
+    $ powerpc-linux-eabi-objdump -d <binary.elf>
+\end{lstlisting}
+
+
+\section{Loading and executing programs}
+
+The specifics of how to do this are defined by the system, in which the processor is used.
+The binary image generated using objcopy has to be transferred to the memory in the system.
+During this time, the processor should be in reset, or you have to know what you are doing.
+After loading, reset is released to start the program.
+The \code{cshell.s} wrapper ensures, that the program goes into the sleep state when the user code terminates, i.e.\ returns from the start() function.
+
+
+

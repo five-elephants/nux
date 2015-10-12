@@ -1,0 +1,11 @@
+*
+
+!*.tex
+!*.bib
+!src/*
+!figures/*
+!main.tex
+!Makefile
+!.gitignore
+
+!*/

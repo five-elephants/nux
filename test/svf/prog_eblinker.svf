@@ -1,0 +1,101 @@
+
+// file header start
+
+TRST OFF;
+ENDIR IDLE;
+ENDDR IDLE;
+STATE RESET;
+STATE IDLE;
+FREQUENCY 1E6 HZ;
+
+//Boundary Scan Chain Contents
+//Position 1: xcf32p
+//Position 2: xcf32p
+//Position 3: xc95144xl
+//Position 4: xccace
+//Position 5: xc5vlx110t
+TIR 48 TDI (ffffffffffff) SMASK (ffffffffffff) ;
+TDR 4 TDI (00) SMASK (1f) ;	
+
+// file header end
+		
+// set control register to 1
+SIR 10 TDI (3e2) SMASK (03ff) ;
+SDR 1 TDI (1) SMASK (1) ;
+RUNTEST 10 TCK ;
+// select instruction memory
+SIR 10 TDI (3c3) SMASK (03ff) ;
+// Inserting mem file '../test/testcode/c/eblinker_code.mem'
+SDR 42 TDI (0007c210a78) SMASK (3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0014800002d) SMASK (3ffffffffff) TDO (0007c210a78) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0027c00007c) SMASK (3ffffffffff) TDO (0014800002d) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0034bfffffc) SMASK (3ffffffffff) TDO (0027c00007c) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0043c000098) SMASK (3ffffffffff) TDO (0034bfffffc) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00560009680) SMASK (3ffffffffff) TDO (0043c000098) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0067c0903a6) SMASK (3ffffffffff) TDO (00560009680) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00760000000) SMASK (3ffffffffff) TDO (0067c0903a6) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0084200fffc) SMASK (3ffffffffff) TDO (00760000000) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0094e800020) SMASK (3ffffffffff) TDO (0084200fffc) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00a7c6213a6) SMASK (3ffffffffff) TDO (0094e800020) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00b4e800020) SMASK (3ffffffffff) TDO (00a7c6213a6) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00c7c0802a6) SMASK (3ffffffffff) TDO (00b4e800020) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00d9421ffe8) SMASK (3ffffffffff) TDO (00c7c0802a6) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00ebfa1000c) SMASK (3ffffffffff) TDO (00d9421ffe8) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (00f3be00000) SMASK (3ffffffffff) TDO (00ebfa1000c) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0109001001c) SMASK (3ffffffffff) TDO (00f3be00000) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0113fa04000) SMASK (3ffffffffff) TDO (0109001001c) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (012393d0000) SMASK (3ffffffffff) TDO (0113fa04000) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0137fc9f8ae) SMASK (3ffffffffff) TDO (012393d0000) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (01457c0e13e) SMASK (3ffffffffff) TDO (0137fc9f8ae) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0157c0213a6) SMASK (3ffffffffff) TDO (01457c0e13e) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0164bffffb9) SMASK (3ffffffffff) TDO (0157c0213a6) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0177fc213a6) SMASK (3ffffffffff) TDO (0164bffffb9) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (0182f9f0002) SMASK (3ffffffffff) TDO (0177fc213a6) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (019419e000c) SMASK (3ffffffffff) TDO (0182f9f0002) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (01a3bff0001) SMASK (3ffffffffff) TDO (019419e000c) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (01b48000008) SMASK (3ffffffffff) TDO (01a3bff0001) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (01c3be00000) SMASK (3ffffffffff) TDO (01b48000008) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (01d4bffff9d) SMASK (3ffffffffff) TDO (01c3be00000) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+SDR 42 TDI (01e4bffffd0) SMASK (3ffffffffff) TDO (01d4bffff9d) MASK(3ffffffffff) ;
+RUNTEST 1 TCK ;
+// Mem file '../test/testcode/c/eblinker_code.mem' finished
+// select data memory
+SIR 10 TDI (3c2) SMASK (03ff) ;
+// Inserting mem file '../test/testcode/c/eblinker_data.mem'
+SDR 42 TDI (000f096c300) SMASK (3ffffffffff) ;
+RUNTEST 1 TCK ;
+// Mem file '../test/testcode/c/eblinker_data.mem' finished
+// set control register to 0
+SIR 10 TDI (3e2) SMASK (03ff) ;
+SDR 1 TDI (0) SMASK (1) ;
+RUNTEST 10 TCK ;

@@ -1,0 +1,7 @@
+ifeq ($(NO_COLOR_OUTPUT),y)
+GREEN_ECHO = echo "$(1)"
+RED_ECHO = echo "$(1)"
+else
+GREEN_ECHO = echo -e "\033[32m$(1)\033[0m"
+RED_ECHO = echo -e "\033[31m$(1)\033[0m"
+endif

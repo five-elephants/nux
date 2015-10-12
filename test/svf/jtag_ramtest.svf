@@ -1,0 +1,32 @@
+TRST OFF;
+ENDIR IDLE;
+ENDDR IDLE;
+STATE RESET;
+STATE IDLE;
+FREQUENCY 1E6 HZ;
+
+//Boundary Scan Chain Contents
+//Position 1: xcf32p
+//Position 2: xcf32p
+//Position 3: xc95144xl
+//Position 4: xccace
+//Position 5: xc5vlx110t
+TIR 48 TDI (ffffffffffff) SMASK (ffffffffffff) ;
+TDR 5 TDI (00) SMASK (1f) ;
+
+// Test operations
+
+// Load USER1 instruction
+SIR 10 TDI (3c2) SMASK (03ff) ;
+
+// write word
+// SDR 42 TDI (000deadaffe) SMASK (3ffffffffff) ;
+// RUNTEST 10 TCK ;
+// SDR 42 TDI (000facedead) SMASK (3ffffffffff) TDO (deadaffe) MASK(ffffffff) ;
+// RUNTEST 10 TCK ;
+
+SDR 42 TDI (3ff12345678) SMASK (3ffffffffff) ;
+SDR 42 TDI (00000000000) SMASK (3ffffffffff) TDO (3ff12345678) MASK (3ffffffffff) ;
+
+SDR 42 TDI (3ffffffffff) SMASK (3ffffffffff) TDO (00000000000) MASK (3ffffffffff) ;
+SDR 42 TDI (3ffffffffff) SMASK (3ffffffffff) TDO (3ffffffffff) MASK (3ffffffffff) ;

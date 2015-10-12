@@ -1,0 +1,41 @@
+# Copyright 2015 Heidelberg University Copyright and related rights are
+# licensed under the Solderpad Hardware License, Version 0.51 (the "License");
+# you may not use this file except in compliance with the License. You may obtain
+# a copy of the License at http://solderpad.org/licenses/SHL-0.51. Unless
+# required by applicable law or agreed to in writing, software, hardware and
+# materials distributed under this License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+# the License for the specific language governing permissions and limitations
+# under the License.
+
+
+src-y += \
+	operand_if.sv \
+	result_if.sv \
+	fixedpoint_ctrl_if.sv \
+	fixedpoint_data_if.sv \
+	load_store_ctrl_if.sv \
+	load_store_data_if.sv \
+	register_file_if.sv \
+	jtag_if.sv \
+	jtag_pin_if.sv \
+	gpr_file_if.sv \
+	pu_ctrl_if.sv \
+	timer_if.sv \
+	wb_channel_if.sv \
+	int_sched_if.sv \
+	delayed_wb_if.sv \
+	syn_io_if.sv
+
+src-$(CONFIG_WITH_VECTOR) += \
+	valu_ctrl_if.sv \
+	vector_slice_ctrl_if.sv \
+	vector_ls_ctrl_if.sv \
+	vector_cmp_ctrl_if.sv \
+	vector_pls_ctrl_if.sv \
+	vector_permute_ctrl_if.sv
+
+src-$(CONFIG_WITH_BUS) += \
+	bus_if.sv \
+	ram_if.sv \
+

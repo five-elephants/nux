@@ -1,0 +1,122 @@
+include config
+include $(ROOTDIR)/config/Makefile.srclist
+
+###############################################################################
+#
+# Tool parameters
+#
+VLOG=vlog
+VLOG_PARAM=-work work -sv -timescale 1ns/10ps -nocovercells -hazards -lint -pedanticerrors +incdir+classes +incdir+./ +incdir+modules $(VLOG_XPARAM)
+VLOG_TIME_PARAM=-work work -sv +incdir+../../classes +incdir+../../
+VSIM=vsim
+VSIM_PARAM=-voptargs=+acc
+SYNPLIFY=synplify_premier_dp
+M4=m4
+###############################################################################
+#
+# Installation specific paths
+#
+XILINX_GLBL=$(XILINX)/ISE/verilog/src/glbl.v
+XILINX_FUNC_LIBS=-L unisims_ver -L xilinxcorelib_ver
+XILINX_TIME_LIBS=-L simprims_ver
+###############################################################################
+#
+# Various implementation files
+#
+BMM_FILE=fpga/memory_i32k_d32k.bmm
+NCD_FILE=fpga/syn/ml505/xilinx_par/Fpga_top.ncd
+PCF_FILE=fpga/syn/ml505/xilinx_par/Fpga_top.pcf
+#BOOT_IMG=test/testcode/blinker_code.mem
+BOOT_IMG=test/testcode/c/eblinker_code.mem
+DATA_IMG=test/testcode/c/eblinker_data.mem
+VERILOG_BOOT_IMG=__ram_boot_img
+SYNPLIFY_FPGA_PRJ=fpga/syn/p1.prj
+SYNPLIFY_FPGA_SRCLIST=fpga/syn/p1_srclist.txt
+###############################################################################
+#
+# Internal pathes (should not need to edit below here)
+#
+TIMING_SIM_DIR=fpga/timing_sim
+M4_INCLUDE_DIR=m4
+###############################################################################
+
+all: work $(S2PP_SRC) $(S2PP_PREPROC_SRC) $(S2PP_TEST_SRC) $(S2PP_TEST_PREPROC_SRC) $(S2PP_FPGA_SRC) $(FPGA_COREGEN_SRC) $(S2PP_FPGA_TEST_SRC)
+
+
+#test: $(SRC) $(TEST_SRC)
+#	$(VSIM) $(VSIM_PARAM) Pu_test -do "run -all ; quit"
+
+fpga_sim: work $(S2PP_SRC) $(S2PP_FPGA_SRC) $(FPGA_COREGEN_SRC) $(S2PP_FPGA_TEST_SRC)
+	$(VLOG) $(XILINX_GLBL)
+
+fpga_sim_start: fpga_sim
+	$(VSIM) $(VSIM_PARAM) $(XILINX_FUNC_LIBS) work.Fpga_top_test work.glbl -do "do support/waves/fpga_top_test.do"
+
+fpga_sim_pp: $(TIMING_SIM_DIR) $(NCD_FILE) $(PCF_FILE) $(BOOT_IMG) $(DATA_IMG)
+	cp fpga/fpga_top_test.sv $(TIMING_SIM_DIR)
+	cp modelsim.ini $(TIMING_SIM_DIR)
+	cp $(NCD_FILE) $(TIMING_SIM_DIR)
+	cp $(PCF_FILE) $(TIMING_SIM_DIR)
+	cp $(BOOT_IMG) $(DATA_IMG) $(TIMING_SIM_DIR)
+	cd $(TIMING_SIM_DIR) ; netgen -ofmt verilog -w $(notdir $(NCD_FILE)) -pcf $(notdir $(PCF_FILE)) -bd $(notdir $(BOOT_IMG)) tag imem -bd $(notdir $(DATA_IMG)) tag dmem -dir ./ -bx ./
+	cd $(TIMING_SIM_DIR) ; vmap work ../../work
+	cd $(TIMING_SIM_DIR) ; $(VLOG) $(VLOG_TIME_PARAM) $(XILINX_GLBL) Fpga_top.v fpga_top_test.sv
+	
+fpga_sim_pp_start: fpga_sim_pp
+	cd $(TIMING_SIM_DIR) ; $(VSIM) $(VSIM_PARAM) $(XILINX_FUNC_LIBS) $(XILINX_TIME_LIBS) work.Fpga_top_test work.glbl
+
+synth: $(SYNPLIFY_FPGA_PRJ)
+	XILINX=$(XILINX)/ISE $(SYNPLIFY) -batch $(SYNPLIFY_FPGA_PRJ)
+
+$(S2PP_SRC):%:%.sv
+	$(VLOG) $(VLOG_PARAM) $<
+
+$(S2PP_PREPROC_SRC):%:%.sv
+	$(M4) -I $(M4_INCLUDE_DIR) $< > $@.preproc.sv
+	$(VLOG) $(VLOG_PARAM) $@.preproc.sv
+	#rm $@.preproc.sv
+
+$(S2PP_TEST_SRC):%:%.sv
+	$(VLOG) $(VLOG_PARAM) $<
+
+$(S2PP_TEST_PREPROC_SRC):%:%.sv
+	$(M4) -I $(M4_INCLUDE_DIR) $< > $@.preproc.sv
+	$(VLOG) $(VLOG_PARAM) $@.preproc.sv
+
+$(S2PP_FPGA_SRC):%:%.sv
+	$(VLOG) $(VLOG_PARAM) $<
+
+$(S2PP_FPGA_TEST_SRC):%:%.sv
+	$(VLOG) $(VLOG_PARAM) $<
+
+$(FPGA_COREGEN_SRC):%:%.v
+	$(VLOG) $(VLOG_PARAM) $<
+
+$(VERILOG_BOOT_IMG): $(BOOT_IMG) $(DATA_IMG)
+	data2mem -bm $(BMM_FILE) -bd $(BOOT_IMG) tag imem -bd $(DATA_IMG) tag dmem -o v $(VERILOG_BOOT_IMG)
+
+work:
+	vlib work
+	
+$(TIMING_SIM_DIR):
+	mkdir $(TIMING_SIM_DIR)
+	
+bit: $(NCD_FILE)
+	bitgen -w $(NCD_FILE) -bd $(BOOT_IMG) tag imem -bd $(DATA_IMG) tag dmem
+	
+
+#------------------------------------------------------------------------------
+# Compile libraries
+libs: dw
+
+
+# DesignWare library
+dw: lib
+	vlib lib/DW
+	vlog -work lib/DW +incdir+$(SYNOPSYS)/dw/sim_ver $(SYNOPSYS)/dw/sim_ver/*.v
+
+# lib directory
+lib:
+	mkdir lib
+
+include $(ROOTDIR)/tools/Makefile.inc

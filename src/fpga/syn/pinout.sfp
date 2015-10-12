@@ -1,0 +1,10 @@
+assign_target {xc5vlx110tff1136}
+create_block_partition {XC5VLX110TFF1136.Chip} 160 1 160 1 RAMB:32_1_32_1 MULT:1_1_1_1 FIFO:1_1_1_1
+assign_fpga_pin  {clk} {XC5VLX110TFF1136.pin_AH15}
+assign_fpga_pin  {gpled[0]} {XC5VLX110TFF1136.pin_G16}
+assign_fpga_pin  {gpled[1]} {XC5VLX110TFF1136.pin_K18}
+assign_fpga_pin  {gpled[2]} {XC5VLX110TFF1136.pin_K17}
+assign_fpga_pin  {gpled[3]} {XC5VLX110TFF1136.pin_AD26}
+assign_fpga_pin  {reset} {XC5VLX110TFF1136.pin_E9}
+assign_fpga_pin  {status_led} {XC5VLX110TFF1136.pin_AE24}
+assign_location {XC5VLX110TFF1136.Chip} 0 0 0 0

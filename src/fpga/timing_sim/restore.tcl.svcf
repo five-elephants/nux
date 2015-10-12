@@ -1,0 +1,219 @@
+# SimVision Command Script (Wed Aug 24 15:35:28 CEST 2011)
+#
+# Version 08.20.s027
+#
+# You can restore this configuration with:
+#
+#     ncsim work.Fpga_top_test -tcl -update -input /fastnbig/home/sfriedma/s2pp_v1/fpga/timing_sim/restore.tcl
+#
+
+
+#
+# Preferences
+#
+preferences set toolbar-Standard-WatchWindow {
+  usual
+  shown 0
+}
+preferences set toolbar-SimControl-WatchList {
+  usual
+  hide set_break
+}
+preferences set script-input-warning 0
+preferences set txe-locate-add-fibers 1
+preferences set toolbar-UserTB0-Console {
+  usual
+  add Reinvoke
+  position -row 0 -pos 2 -anchor e
+  name {User Toolbar}
+}
+preferences set txe-navigate-search-locate 0
+preferences set txe-view-hold 0
+preferences set toolbar-CursorControl-WaveWindow {
+  usual
+  position -row 1
+}
+preferences set toolbar-Windows-WatchWindow {
+  usual
+  shown 0
+}
+preferences set user-toolbar-list {Console UserTB0}
+preferences set sb-tab-size 4
+preferences set txe-navigate-waveform-locate 1
+preferences set txe-view-hidden 0
+preferences set toolbar-TimeSearch-WaveWindow {
+  usual
+  position -row 0 -pos 5 -anchor e
+}
+preferences set waveform-print-paper {A4 (210mm x 297mm)}
+preferences set txe-search-show-linenumbers 1
+preferences set toolbar-NavSignalList-WaveWindow {
+  usual
+  position -row 0 -pos 3
+}
+preferences set toolbar-txe_waveform_toggle-WaveWindow {
+  usual
+  position -pos 1
+}
+preferences set print-company Kip
+preferences set toolbar-SimControl-WatchWindow {
+  usual
+  hide set_break
+  shown 0
+}
+preferences set toolbar-Windows-WaveWindow {
+  usual
+  position -pos 4
+}
+preferences set txe-navigate-waveform-next-child 1
+preferences set print-designer sf
+preferences set toolbar-Edit-WatchWindow {
+  usual
+  shown 0
+}
+preferences set toolbar-WaveZoom-WaveWindow {
+  usual
+  position -row 1 -pos 1
+}
+preferences set txe-locate-scroll-x 1
+preferences set txe-locate-scroll-y 1
+preferences set txe-locate-pop-waveform 1
+preferences set toolbar-TimeSearch-WatchWindow {
+  usual
+  shown 0
+}
+
+#
+# Simulator
+#
+database require simulator -hints {
+	simulator "ncsim -gui work.Fpga_top_test -tcl -update -input restore.tcl"
+}
+
+#
+# Cursors
+#
+set time 11550000ps
+if {[catch {cursor new -name  TimeA -time $time}] != ""} {
+    cursor set -using TimeA -time $time
+}
+
+#
+# Mnemonic Maps
+#
+mmap new -reuse -name {Boolean as Logic} -radix %b -contents {
+{%c=FALSE -edgepriority 1 -shape low}
+{%c=TRUE -edgepriority 1 -shape high}
+}
+mmap new -reuse -name {Example Map} -radix %x -contents {
+{%b=11???? -bgcolor orange -label REG:%x -linecolor yellow -shape bus}
+{%x=1F -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=2C -bgcolor red -label ERROR -linecolor white -shape EVENT}
+{%x=* -label %x -linecolor gray -shape bus}
+}
+
+#
+# Design Browser windows
+#
+if {[catch {window new browser -name "Design Browser 1" -geometry 1063x936+808+0}] != ""} {
+    window geometry "Design Browser 1" 1063x936+808+0
+}
+window target "Design Browser 1" on
+browser using "Design Browser 1"
+browser set -scope [subst -nobackslashes -nocommands simulator::Fpga_top_test.uut ]
+browser set \
+    -showassertions 0 \
+    -showfibers 0
+browser yview see [subst -nobackslashes -nocommands simulator::Fpga_top_test.uut ]
+browser timecontrol set -lock 0
+
+#
+# Waveform windows
+#
+if {[catch {window new WaveWindow -name "Waveform 1" -geometry 1501x946+0+75}] != ""} {
+    window geometry "Waveform 1" 1501x946+0+75
+}
+window target "Waveform 1" on
+waveform using {Waveform 1}
+waveform sidebar visibility partial
+waveform set \
+    -primarycursor TimeA \
+    -signalnames name \
+    -signalwidth 175 \
+    -units ps \
+    -valuewidth 75
+cursor set -using TimeA -time 11,550,000ps
+waveform baseline set -time 0
+
+set id [waveform add -signals [subst -nobackslashes -nocommands {
+	simulator::Fpga_top_test.clk
+	simulator::Fpga_top_test.clk_period
+	{simulator::Fpga_top_test.gpled[3:0]}
+	simulator::Fpga_top_test.jtag_clk_period
+	simulator::Fpga_top_test.resetb
+	simulator::Fpga_top_test.status_led
+	simulator::Fpga_top_test.jtag_program_inst.code_img_file
+	simulator::Fpga_top_test.jtag_program_inst.data_img_file
+	simulator::Fpga_top_test.jtag_program_inst.program_exe_time
+	simulator::Fpga_top_test.jtag.tck
+	simulator::Fpga_top_test.jtag.tdi
+	simulator::Fpga_top_test.jtag.tdi_sl
+	simulator::Fpga_top_test.jtag.tdo
+	simulator::Fpga_top_test.jtag.tms
+	simulator::Fpga_top_test.jtag.tms_sl
+} ]]
+set id [waveform add -label load_code -comment {}]
+waveform format $id -trace analogSampleAndHold -namecolor #ff0000
+set id [waveform add -signals [subst -nobackslashes -nocommands {
+	simulator::Fpga_top_test.jtag_program_inst.initial_block.unmblk3.i
+} ]]
+set id [waveform add -label load_data -comment {}]
+waveform format $id -trace analogSampleAndHold -namecolor #ff0000
+set id [waveform add -signals [subst -nobackslashes -nocommands {
+	simulator::Fpga_top_test.jtag_program_inst.initial_block.unmblk5.i
+	{simulator::Fpga_top_test.jtag_program_inst.initial_block.w[31:0]}
+} ]]
+set id [waveform add -label load_result -comment {}]
+waveform format $id -trace analogSampleAndHold -namecolor #ff0000
+set id [waveform add -signals [subst -nobackslashes -nocommands {
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .UPDATE}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .TDO}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .TDI}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .SHIFT}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .SEL}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .RESET}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .DRCK}
+	{simulator::Fpga_top_test.uut.\jtag_ctrl_scan/BSCAN_VIRTEX5_inst .CAPTURE}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .CAPTURE}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .DRCK}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .RESET}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .SEL}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .SHIFT}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .TDI}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .TDO}
+	{simulator::Fpga_top_test.uut.\jtag_dmem_scan/BSCAN_VIRTEX5_inst .UPDATE}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .CAPTURE}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .DRCK}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .RESET}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .SEL}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .SHIFT}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .TDI}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .TDO}
+	{simulator::Fpga_top_test.uut.\jtag_imem_scan/BSCAN_VIRTEX5_inst .UPDATE}
+	{simulator::Fpga_top_test.uut.\jtag_to_dmem/addr [12:0]}
+	{simulator::Fpga_top_test.uut.\jtag_to_dmem/data [30:0]}
+	{simulator::Fpga_top_test.uut.\jtag_to_dmem.update_d }
+	{simulator::Fpga_top_test.uut.\jtag_to_dmem.sync_ff [1:1]}
+} ]]
+
+waveform xview limits 6266949ps 12470339ps
+
+#
+# Waveform Window Links
+#
+
+#
+# Console windows
+#
+console set -windowname Console
+window geometry Console 800x813+2024+46

@@ -1,0 +1,31 @@
+MEMORY 
+{
+  rom (rx)  : ORIGIN = 0, LENGTH = 16K 
+  ram (!rx) : org = 0x40000000, l = 16K
+}
+
+SECTIONS
+{
+  .text : {
+    _isr_undefined = .;
+
+    *(.text) 
+
+    PROVIDE(isr_einput = _isr_undefined);
+    PROVIDE(isr_alignment = _isr_undefined);
+    PROVIDE(isr_program = _isr_undefined);
+    PROVIDE(isr_doorbell = _isr_undefined); 
+    PROVIDE(isr_fit = _isr_undefined); 
+    PROVIDE(isr_dec = _isr_undefined);
+  } > rom
+
+  .data : {
+    *(.data) 
+    *(.rodata) 
+    *(.rodata.str1.4) 
+    *(.bss) 
+    *(.sbss)
+  } > ram
+
+  .bss  : {*(.bss) *(.sbss)} > ram
+}

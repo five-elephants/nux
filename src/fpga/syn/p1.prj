@@ -1,0 +1,376 @@
+#--  Synopsys, Inc.
+#--  Version F-2012.03
+#--  Project file /superfast/home/sfriedma/s2pp/fpga/syn/p1.prj
+
+#project files
+add_file -verilog -vlog_std sysv "../../modules/pu_types_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/pu_inst_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/pu_interrupt_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/frontend_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/backend_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/load_store_pkg.sv"
+add_file -verilog -vlog_std sysv "../../modules/syn_io_pkg.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/fixedpoint_ctrl_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/fixedpoint_data_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/load_store_ctrl_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/load_store_data_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/register_file_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/ram_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/jtag_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/jtag_pin_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/gpr_file_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/pu_ctrl_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/timer_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/wb_channel_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/int_sched_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/bus_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/delayed_wb_if.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/syn_io_if.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_if_split.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_if_arb.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_slave_terminator.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_master_terminator.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_reg_target.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_delay.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_serial.sv"
+add_file -verilog -vlog_std sysv "../../modules/bridge_bus2ram.sv"
+add_file -verilog -vlog_std sysv "../../modules/bridge_ram2bus_ro.sv"
+add_file -verilog -vlog_std sysv "../../modules/dec_fixedpoint.sv"
+add_file -verilog -vlog_std sysv "../../modules/jtag_to_mem.sv"
+add_file -verilog -vlog_std sysv "../../modules/l1_memory.sv"
+add_file -verilog -vlog_std sysv "../../modules/cr_logic.sv"
+add_file -verilog -vlog_std sysv "../../modules/isel.sv"
+add_file -verilog -vlog_std sysv "../../modules/rotm.sv"
+add_file -verilog -vlog_std sysv "../../modules/bit_counter_4.sv"
+add_file -verilog -vlog_std sysv "../../modules/popcnt.sv"
+add_file -verilog -vlog_std sysv "../../modules/parity.sv"
+add_file -verilog -vlog_std sysv "../../modules/cntlz.sv"
+add_file -verilog -vlog_std sysv "../../modules/adder.sv"
+add_file -verilog -vlog_std sysv "../../modules/logical.sv"
+add_file -verilog -vlog_std sysv "../../modules/exts.sv"
+add_file -verilog -vlog_std sysv "../../modules/alu.sv"
+add_file -verilog -vlog_std sysv "../../modules/spreu.sv"
+add_file -verilog -vlog_std sysv "../../modules/mul.sv"
+add_file -verilog -vlog_std sysv "../../modules/mul_dw.sv"
+add_file -verilog -vlog_std sysv "../../modules/mul_dw_seq.sv"
+add_file -verilog -vlog_std sysv "../../modules/mul_dw_pipe.sv"
+add_file -verilog -vlog_std sysv "../../modules/mul_xil_pipe.sv"
+add_file -verilog -vlog_std sysv "../../modules/div_dw_seq.sv"
+add_file -verilog -vlog_std sysv "../../modules/fixedpoint.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_fixedpoint.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_load_store.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_ls_var.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_branch.sv"
+add_file -verilog -vlog_std sysv "../../modules/result_shiftreg.sv"
+add_file -verilog -vlog_std sysv "../../modules/inst_stream.sv"
+add_file -verilog -vlog_std sysv "../../modules/lookup_cache.sv"
+add_file -verilog -vlog_std sysv "../../modules/inst_track.sv"
+add_file -verilog -vlog_std sysv "../../modules/bcache.sv"
+add_file -verilog -vlog_std sysv "../../modules/bcache_full.sv"
+add_file -verilog -vlog_std sysv "../../modules/schedule_single.sv"
+add_file -verilog -vlog_std sysv "../../modules/cycle_counter.sv"
+add_file -verilog -vlog_std sysv "../../modules/frontend_single.sv"
+add_file -verilog -vlog_std sysv "../../modules/byte_align.sv"
+add_file -verilog -vlog_std sysv "../../modules/byte_rotm.sv"
+add_file -verilog -vlog_std sysv "../../modules/bus_access.sv"
+add_file -verilog -vlog_std sysv "../../modules/load_store.sv"
+add_file -verilog -vlog_std sysv "../../modules/write_back.sv"
+add_file -verilog -vlog_std sysv "../../modules/int_sched.sv"
+add_file -verilog -vlog_std sysv "../../modules/gpr_file.sv"
+add_file -verilog -vlog_std sysv "../../modules/pu.sv"
+add_file -verilog -vlog_std sysv "../../modules/timer_unit.sv"
+add_file -verilog -vlog_std sysv "../../modules/interrupt_ctrl.sv"
+add_file -verilog -vlog_std sysv "../../modules/msg_queue.sv"
+add_file -verilog -vlog_std sysv "../../modules/read_cache.sv"
+add_file -verilog -vlog_std sysv "../../modules/never_map.sv"
+add_file -verilog -vlog_std sysv "../../modules/never_select.sv"
+add_file -verilog -vlog_std sysv "../../modules/never_compare.sv"
+add_file -verilog -vlog_std sysv "../../modules/syn_io_seq.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/operand_if.preproc.sv"
+add_file -verilog -vlog_std sysv "../../interfaces/result_if.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/predecode.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/operand_fetch.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/dec_load_store.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/dec_ls_var.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_mul.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_div.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_io.preproc.sv"
+add_file -verilog -vlog_std sysv "../../modules/fub_never.preproc.sv"
+add_file -verilog -vlog_std sysv "../jtag_v5.sv"
+add_file -verilog -vlog_std sysv "../jtag_s6.sv"
+add_file -verilog -vlog_std sysv "../jtag_v5_simpins.sv"
+add_file -verilog -vlog_std sysv "../l1_memory_v5.sv"
+add_file -verilog -vlog_std sysv "../l1_memory_s6.sv"
+add_file -verilog -vlog_std sysv "../clock_generator.sv"
+add_file -verilog -vlog_std sysv "../freq_synth.sv"
+add_file -verilog -vlog_std sysv "../heartbeat.sv"
+add_file -verilog -vlog_std sysv "../fpga_top.sv"
+add_file -verilog -vlog_std sysv "../multiproc_top.sv"
+add_file -verilog -vlog_std sysv "../emsys_top.sv"
+add_file -verilog "../coregen/ramb_8192x32_dp.v"
+add_file -verilog "../coregen/ramb_128x32_dp.v"
+add_file -verilog "../coregen/ramb_64x32_dp.v"
+add_file -verilog "../coregen/ramb_32x32_dp.v"
+add_file -verilog "../coregen/ramb_256x32_dp.v"
+add_file -verilog "../coregen/ramb_512x32_dp.v"
+add_file -verilog "../coregen/xil_mult_sgnd_3d.v"
+add_file -verilog "../coregen/xil_mult_sgnd_0d.v"
+add_file -verilog "../coregen/xil_mult_sgnd_1d.v"
+add_file -verilog "../coregen/xil_mult_sgnd_2d.v"
+add_file -verilog "../coregen/xil_mult_sgnd_6d.v"
+add_file -verilog "../coregen/sp6_ramb_8192x32_dp.v"
+add_file -verilog "../coregen/sp6_ramb_128x32_dp.v"
+add_file -verilog "../coregen/sp6_xil_mult_sgnd_0d.v"
+add_file -xilinx "../coregen/ramb_8192x32_dp.ngc"
+add_file -xilinx "../coregen/ramb_128x32_dp.ngc"
+add_file -xilinx "../coregen/ramb_64x32_dp.ngc"
+add_file -xilinx "../coregen/ramb_32x32_dp.ngc"
+add_file -xilinx "../coregen/ramb_256x32_dp.ngc"
+add_file -xilinx "../coregen/ramb_512x32_dp.ngc"
+add_file -xilinx "../coregen/xil_mult_sgnd_3d.ngc"
+add_file -xilinx "../coregen/xil_mult_sgnd_0d.ngc"
+add_file -xilinx "../coregen/xil_mult_sgnd_1d.ngc"
+add_file -xilinx "../coregen/xil_mult_sgnd_2d.ngc"
+add_file -xilinx "../coregen/xil_mult_sgnd_6d.ngc"
+add_file -xilinx "../coregen/sp6_ramb_8192x32_dp.ngc"
+add_file -xilinx "../coregen/sp6_ramb_128x32_dp.ngc"
+add_file -xilinx "../coregen/sp6_xil_mult_sgnd_0d.ngc"
+add_file -constraint "/superfast/home/sfriedma/s2pp/fpga/syn/emsys_constraints.sdc"
+add_file -constraint "./fpga_top_constraints.sdc"
+
+
+#implementation: "ml505"
+impl -add ml505 -type fpga
+
+#
+#implementation attributes
+
+set_option -vlog_std sysv
+set_option -num_startend_points 5
+set_option -project_relative_includes 1
+set_option -hdl_define -set SYNTOOL_SYNPLIFY=1=SYNTHESIS=1
+set_option -include_path {../..}
+
+#xilinx_par attributes
+set_option -job xilinx_par -add par
+set_option -job xilinx_par -option enable_run 1
+set_option -job xilinx_par -option run_backannotation 0
+set_option -job xilinx_par -option xtclsh_option_file ise_par_script_emsys.tcl
+
+#device options
+set_option -technology Virtex5
+set_option -part XC5VLX110T
+set_option -package FF1136
+set_option -speed_grade -1
+set_option -part_companion ""
+
+#compilation/mapping options
+set_option -use_fsm_explorer 0
+set_option -top_module "Emsys_top"
+
+# mapper_options
+set_option -frequency auto
+set_option -write_verilog 0
+set_option -write_vhdl 0
+
+# Xilinx Virtex2
+set_option -run_prop_extract 1
+set_option -maxfan 10000
+set_option -disable_io_insertion 0
+set_option -pipe 0
+set_option -update_models_cp 0
+set_option -retiming 0
+set_option -no_sequential_opt 0
+set_option -fixgatedclocks 3
+set_option -fixgeneratedclocks 3
+
+# Xilinx Virtex5
+set_option -enable_prepacking 1
+
+# NFilter
+set_option -popfeed 0
+set_option -constprop 0
+set_option -createhierarchy 0
+
+# Xilinx
+set_option -fc_phys_opt 0
+
+# sequential_optimization_options
+set_option -symbolic_fsm_compiler 1
+
+# Compiler Options
+set_option -compiler_compatible 0
+set_option -resource_sharing 1
+set_option -dw_foundation 1
+
+#VIF options
+set_option -write_vif 1
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 1
+
+#set result format/file last
+project -result_file "./ml505/emsys_top.edf"
+
+#design plan options
+
+
+#implementation: "flyspi-board"
+impl -add flyspi-board -type fpga
+
+#
+#implementation attributes
+
+set_option -vlog_std sysv
+set_option -num_startend_points 5
+set_option -project_relative_includes 1
+set_option -hdl_define -set SYNTOOL_SYNPLIFY=1=SYNTHESIS=1
+
+#set constraint files
+set_option -constraint -clear
+set_option -constraint -enable "emsys_constraints.sdc"
+set_option -include_path {../..}
+
+#xilinx_par attributes
+set_option -job xilinx_par -add par
+set_option -job xilinx_par -option enable_run 1
+set_option -job xilinx_par -option run_backannotation 0
+
+#device options
+set_option -technology Spartan6
+set_option -part XC6SLX150T
+set_option -package CSG484
+set_option -speed_grade -3
+set_option -part_companion ""
+
+#compilation/mapping options
+set_option -use_fsm_explorer 0
+set_option -top_module "Emsys_top"
+
+# mapper_options
+set_option -frequency auto
+set_option -write_verilog 0
+set_option -write_vhdl 0
+
+# Xilinx Spartan3
+set_option -run_prop_extract 1
+set_option -maxfan 10000
+set_option -disable_io_insertion 0
+set_option -pipe 0
+set_option -retiming 0
+set_option -update_models_cp 0
+set_option -fixgatedclocks 3
+set_option -fixgeneratedclocks 3
+set_option -no_sequential_opt 0
+
+# Xilinx Spartan6
+set_option -enable_prepacking 1
+
+# NFilter
+set_option -popfeed 0
+set_option -constprop 0
+set_option -createhierarchy 0
+
+# Xilinx
+set_option -fc_phys_opt 0
+
+# sequential_optimization_options
+set_option -symbolic_fsm_compiler 1
+
+# Compiler Options
+set_option -compiler_compatible 0
+set_option -resource_sharing 1
+set_option -dw_foundation 1
+
+#VIF options
+set_option -write_vif 1
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 1
+
+#set result format/file last
+project -result_file "./flyspi-board/emsys_top.edf"
+
+#design plan options
+
+
+#implementation: "ml505_1"
+impl -add ml505_1 -type fpga
+
+#
+#implementation attributes
+
+set_option -vlog_std sysv
+set_option -num_startend_points 5
+set_option -project_relative_includes 1
+set_option -hdl_define -set SYNTOOL_SYNPLIFY=1=SYNTHESIS=1
+
+#set constraint files
+set_option -constraint -clear
+set_option -constraint -enable "fpga_top_constraints.sdc"
+set_option -include_path {../..}
+
+#xilinx_par attributes
+set_option -job xilinx_par -add par
+set_option -job xilinx_par -option enable_run 1
+set_option -job xilinx_par -option run_backannotation 0
+set_option -job xilinx_par -option xtclsh_option_file /superfast/home/sfriedma/s2pp/fpga/syn/ise_par_script_emsys.tcl
+
+#device options
+set_option -technology Virtex5
+set_option -part XC5VLX110T
+set_option -package FF1136
+set_option -speed_grade -1
+set_option -part_companion ""
+
+#compilation/mapping options
+set_option -use_fsm_explorer 0
+set_option -top_module "Fpga_top"
+
+# mapper_options
+set_option -frequency auto
+set_option -write_verilog 0
+set_option -write_vhdl 0
+
+# Xilinx Virtex2
+set_option -run_prop_extract 1
+set_option -maxfan 10000
+set_option -disable_io_insertion 0
+set_option -pipe 1
+set_option -update_models_cp 0
+set_option -retiming 0
+set_option -no_sequential_opt 0
+set_option -fixgatedclocks 3
+set_option -fixgeneratedclocks 3
+
+# Xilinx Virtex5
+set_option -enable_prepacking 1
+
+# NFilter
+set_option -popfeed 0
+set_option -constprop 0
+set_option -createhierarchy 0
+
+# Xilinx
+set_option -fc_phys_opt 0
+
+# sequential_optimization_options
+set_option -symbolic_fsm_compiler 1
+
+# Compiler Options
+set_option -compiler_compatible 0
+set_option -resource_sharing 1
+set_option -dw_foundation 1
+
+#VIF options
+set_option -write_vif 1
+
+#automatic place and route (vendor) options
+set_option -write_apr_constraint 1
+
+#set result format/file last
+project -result_file "./ml505_1/emsys_top.edf"
+
+#design plan options
+impl -active "ml505_1"

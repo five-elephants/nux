@@ -1,0 +1,10 @@
+DEFAULT +rwc
+PATH Fpga_top_test.* +rwc
+PATH Fpga_top_test.clk +rwc
+PATH Fpga_top_test.resetb +rwc
+PATH Fpga_top_test.status_led +rwc
+PATH Fpga_top_test.gpled +rwc
+PATH Fpga_top_test.jtag +rwc
+PATH Fpga_top_test.jtag_pins +rwc
+PATH Fpga_top_test.jtag_program_inst +rwc
+PATH Fpga_top_test.uut.* -rwc

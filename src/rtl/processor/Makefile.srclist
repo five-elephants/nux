@@ -1,0 +1,106 @@
+# Copyright 2015 Heidelberg University Copyright and related rights are
+# licensed under the Solderpad Hardware License, Version 0.51 (the "License");
+# you may not use this file except in compliance with the License. You may obtain
+# a copy of the License at http://solderpad.org/licenses/SHL-0.51. Unless
+# required by applicable law or agreed to in writing, software, hardware and
+# materials distributed under this License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See
+# the License for the specific language governing permissions and limitations
+# under the License.
+
+
+src-y += \
+	dec_fixedpoint.sv \
+	jtag_to_mem.sv \
+	cr_logic.sv \
+	isel.sv \
+	rotm.sv \
+	bit_counter_4.sv \
+	popcnt.sv \
+	parity.sv \
+	cntlz.sv \
+	adder.sv \
+	logical.sv \
+	exts.sv \
+	alu.sv \
+	spreu.sv \
+	div_dw_seq.sv \
+	fixedpoint.sv \
+	fub_fixedpoint.sv \
+	fub_load_store.sv \
+	fub_ls_var.sv \
+	fub_branch.sv \
+	result_shiftreg.sv \
+	inst_stream.sv \
+	lookup_cache.sv \
+	inst_track.sv \
+	bcache.sv \
+	bcache_full.sv \
+	schedule_single.sv \
+	cycle_counter.sv \
+	frontend_single.sv \
+	byte_align.sv \
+	byte_rotm.sv \
+	bus_access.sv \
+	load_store.sv \
+	write_back.sv \
+	int_sched.sv \
+	gpr_file.sv \
+	pu.sv \
+	timer_unit.sv \
+	interrupt_ctrl.sv \
+	msg_queue.sv \
+	read_cache.sv \
+	never_map.sv \
+	never_select.sv \
+	never_compare.sv \
+	syn_io_seq.sv \
+	predecode.sv \
+	operand_fetch.sv \
+	dec_load_store.sv \
+	dec_ls_var.sv \
+	fub_mul.sv \
+	fub_div.sv \
+	fub_io.sv \
+	fub_never.sv \
+	fub_synapse.sv
+
+# vector SIMD stuff
+src-$(CONFIG_WITH_VECTOR) += \
+	valu.sv \
+	valu_mult_add.sv \
+	valu_ctrl.sv \
+	vector_rf.sv \
+	vector_slice.sv \
+	vector_ctrl.sv \
+	fub_vector.sv \
+	vector_rsr.sv \
+	vector_reservation_station.sv \
+	vector_ls.sv \
+	vector_ls_shared.sv \
+	vector_ls_ctrl.sv \
+	vector_compare.sv \
+	vector_cmp_ctrl.sv \
+	vrf_wb_arb.sv \
+	vector_pls.sv \
+	vector_pls_ctrl.sv \
+	vector_pls_shared.sv \
+	vector_permute.sv \
+	vector_permute_ctrl.sv
+
+src-y += \
+	pu_for_hicann-dls-2014.10.sv
+
+ifneq ($(CONFIG_USE_XILINX_MULTIPLIER),y)
+src-y += mul_pipe.sv
+endif
+
+src-$(BUILD_SIMULATION) += \
+	sim_memory.sv \
+	l1_memory.sv \
+	iobus_dummy.sv \
+	syn_io_dummy.sv
+
+# valu.sv needs DesignWare include functions
+incdirs-y += $(SYNOPSYS)/dw/sim_ver
+

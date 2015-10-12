@@ -1,0 +1,24 @@
+MEMORY 
+{
+    rom (rx)  : ORIGIN = 0, LENGTH = 32K 
+    ram (!rx) : org = 0x40000000, l = 32K
+}
+
+SECTIONS
+{
+    .text : { 
+  	    *(.text)	
+    } > rom
+
+    .data : { 
+        *(.data) 
+        *(.rodata) 
+		*(.rodata.cst4)
+    } > ram
+
+    .bss : {
+        *(.bss)
+        *(.sbss)
+    } > ram
+}
+

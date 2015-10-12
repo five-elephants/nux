@@ -1,0 +1,13 @@
+ADDRESS_SPACE imem MEMORY [0:32767]
+	// instruction memory
+	BUS_BLOCK
+		imem/gen_addr_13bits/ramb_inst/inst/blk_mem_gen_v4_3_inst/memory [31:0];
+	END_BUS_BLOCK;
+END_ADDRESS_SPACE;
+
+ADDRESS_SPACE dmem MEMORY [0:32767]
+	// data memory
+	BUS_BLOCK
+		dmem/gen_addr_13bits/ramb_inst/inst/blk_mem_gen_v4_3_inst/memory [31:0];
+	END_BUS_BLOCK;
+END_ADDRESS_SPACE;
