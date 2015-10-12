@@ -1,2 +1,2 @@
 [omnibus]
-checkout = git clone git@brainscales-r.kip.uni-heidelberg.de:omnibus.git
+checkout = git clone git@github.com:electronicvisions/omnibus.git
